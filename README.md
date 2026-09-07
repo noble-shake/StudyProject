@@ -22,6 +22,4 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 | 주제 | 출처(프로젝트 · STUDY-nn) | 상태 |
 |---|---|---|
-| | | |
-
-> 아직 항목 없음. 첫 주제를 시작하면 `_TEMPLATE.md`를 복사해 파일을 만들고 이 표에 한 줄 추가한다.
+| [RottenNobleProject 아키텍처 이해하기](RottenNobleProject-Architecture.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | 학습 중 — 환경/스택만 끝남 |
