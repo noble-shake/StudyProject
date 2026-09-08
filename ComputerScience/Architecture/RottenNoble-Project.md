@@ -74,8 +74,10 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 라우팅 | react-router-dom, `HashRouter` | [React Router](../WebDevelopment/React-Router.md) |
 | 빌드 도구 | CRA(`react-scripts` 5.0.1) → Vite 검토 중 | [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) |
 | 토큰 저장 | 브라우저 `localStorage` | [Token Storage](../Security/Token-Storage.md) |
-| CORS | 와일드카드(`Access-Control-Allow-Origin: *`) | [CORS](../Network/CORS.md) |
+| CORS | 명시적 origin 허용목록(2026-09-08 이전엔 와일드카드) | [CORS](../Network/CORS.md) |
 | 배포 인프라 | Synology NAS Web Station, Let's Encrypt | [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md), [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) |
+| 요청 제한 | Redis INCR 기반 IP별 rate limiting (로그인/방명록/관리자 쓰기) | [Rate Limiting](../Security/Rate-Limiting.md) |
+| 개인정보 저장 | 방명록 이름 AES-256-GCM 암호화 | [저장 데이터 암호화](../Security/Encryption-at-Rest.md) |
 
 ## 특이할 점
 
@@ -89,11 +91,14 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 2. **실무 표준(JWT)을 알면서도 의도적으로 다른 선택을 했다.** `MEMO-WEB-04`를 보면 JWT를 몰라서
    Redis 세션을 쓴 게 아니라, "이 규모에서는 즉시 무효화가 확장성보다 중요하다"는 판단 아래
    의도적으로 비주류를 택했다. 문서에 그 비교와 근거가 명시적으로 남아있다는 게 특이하다.
-3. **문서화된 보안 결정과 실제 코드가 갈라진 지점이 실제로 존재한다.** `MEMO-WEB-02`가
-   "인증 엔드포인트엔 CORS 와일드카드를 복사하지 말라"고 스스로 경고해뒀는데, 실제 구현
-   (`response.php`의 공유 `allow_cors()`)은 그 경고를 지키지 못했다 — 다행히 인증 방식(헤더
-   토큰)이 그 갭의 실질적 위험을 낮춰주고 있지만, 코드와 문서가 항상 일치하지는 않는다는 걸 보여주는
-   실제 사례다.
+3. **문서화된 보안 결정과 실제 코드가 갈라졌다가, 실제 공격 시도를 계기로 다시 합쳐진 사례가
+   있다.** `MEMO-WEB-02`가 "인증 엔드포인트엔 CORS 와일드카드를 복사하지 말라"고 스스로
+   경고해뒀는데, 처음 구현(`response.php`의 공유 `allow_cors()`)은 그 경고를 지키지 못한 채
+   배포됐다 — 인증 방식(헤더 토큰)이 그 갭의 실질적 위험을 낮춰주고는 있었지만. 2026-09-08 실제
+   스캔/프로빙을 겪은 뒤에야 명시적 origin 허용목록으로 고쳐졌고, 같은 계기로 rate limiting과
+   방명록 이름 암호화도 함께 들어갔다([Rate Limiting](../Security/Rate-Limiting.md),
+   [저장 데이터 암호화](../Security/Encryption-at-Rest.md)). "알려진 갭이 실제로 익스플로잇되기
+   전까지는 우선순위에서 밀린다"는 흔한 패턴을 그대로 보여준다.
 4. **인프라 제약이 기술 선택을 여러 단계로 역산시켰다.** "이미 NAS가 있다" → "NAS가 MariaDB를
    기본 지원한다" → "로컬도 같은 Apache+PHP 조합(XAMPP)으로 맞춘다"로 이어지는 연쇄, 그리고
    "Web Station GUI로 rewrite 설정을 못 만진다" → "HashRouter로 우회한다"는 연쇄가 둘 다 같은
@@ -108,7 +113,8 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 - [RottenNobleProject 아키텍처 이해하기](./RottenNobleProject-Architecture.md) — 세션별 코드 학습 기록(1~3회차)
 - [PHP](../WebDevelopment/PHP.md) · [MariaDB](../Database/MariaDB.md) · [Redis](../Infrastructure/Redis.md) — 백엔드 언어/저장소
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) · [비밀번호 해싱](../Security/Password-Hashing.md) ·
-  [CORS](../Network/CORS.md) · [Token Storage](../Security/Token-Storage.md) — 인증/보안
+  [CORS](../Network/CORS.md) · [Token Storage](../Security/Token-Storage.md) ·
+  [Rate Limiting](../Security/Rate-Limiting.md) · [저장 데이터 암호화](../Security/Encryption-at-Rest.md) — 인증/보안
 - [REST API 설계](../WebDevelopment/REST-API-Design.md) — 백엔드-프런트 통신 규약
 - [React](../WebDevelopment/React.md) · [React Router](../WebDevelopment/React-Router.md) · [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) — 프런트엔드
 - [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — 인프라
@@ -124,3 +130,4 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 개별 주제 문서 12개를 다 쓴 뒤 전체 그림을 한 문서로 종합 |
+| 2026-09-08 | CORS/rate limiting/암호화 반영 | 실제 스캔/프로빙 대응으로 추가된 방어 심층화를 기술 스택 표·특이할 점에 갱신 |

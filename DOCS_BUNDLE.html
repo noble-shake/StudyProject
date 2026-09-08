@@ -456,8 +456,10 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 라우팅 | react-router-dom, `HashRouter` | [React Router](../WebDevelopment/React-Router.md) |
 | 빌드 도구 | CRA(`react-scripts` 5.0.1) → Vite 검토 중 | [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) |
 | 토큰 저장 | 브라우저 `localStorage` | [Token Storage](../Security/Token-Storage.md) |
-| CORS | 와일드카드(`Access-Control-Allow-Origin: *`) | [CORS](../Network/CORS.md) |
+| CORS | 명시적 origin 허용목록(2026-09-08 이전엔 와일드카드) | [CORS](../Network/CORS.md) |
 | 배포 인프라 | Synology NAS Web Station, Let's Encrypt | [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md), [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) |
+| 요청 제한 | Redis INCR 기반 IP별 rate limiting (로그인/방명록/관리자 쓰기) | [Rate Limiting](../Security/Rate-Limiting.md) |
+| 개인정보 저장 | 방명록 이름 AES-256-GCM 암호화 | [저장 데이터 암호화](../Security/Encryption-at-Rest.md) |
 
 ## 특이할 점
 
@@ -471,11 +473,14 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 2. **실무 표준(JWT)을 알면서도 의도적으로 다른 선택을 했다.** `MEMO-WEB-04`를 보면 JWT를 몰라서
    Redis 세션을 쓴 게 아니라, "이 규모에서는 즉시 무효화가 확장성보다 중요하다"는 판단 아래
    의도적으로 비주류를 택했다. 문서에 그 비교와 근거가 명시적으로 남아있다는 게 특이하다.
-3. **문서화된 보안 결정과 실제 코드가 갈라진 지점이 실제로 존재한다.** `MEMO-WEB-02`가
-   "인증 엔드포인트엔 CORS 와일드카드를 복사하지 말라"고 스스로 경고해뒀는데, 실제 구현
-   (`response.php`의 공유 `allow_cors()`)은 그 경고를 지키지 못했다 — 다행히 인증 방식(헤더
-   토큰)이 그 갭의 실질적 위험을 낮춰주고 있지만, 코드와 문서가 항상 일치하지는 않는다는 걸 보여주는
-   실제 사례다.
+3. **문서화된 보안 결정과 실제 코드가 갈라졌다가, 실제 공격 시도를 계기로 다시 합쳐진 사례가
+   있다.** `MEMO-WEB-02`가 "인증 엔드포인트엔 CORS 와일드카드를 복사하지 말라"고 스스로
+   경고해뒀는데, 처음 구현(`response.php`의 공유 `allow_cors()`)은 그 경고를 지키지 못한 채
+   배포됐다 — 인증 방식(헤더 토큰)이 그 갭의 실질적 위험을 낮춰주고는 있었지만. 2026-09-08 실제
+   스캔/프로빙을 겪은 뒤에야 명시적 origin 허용목록으로 고쳐졌고, 같은 계기로 rate limiting과
+   방명록 이름 암호화도 함께 들어갔다([Rate Limiting](../Security/Rate-Limiting.md),
+   [저장 데이터 암호화](../Security/Encryption-at-Rest.md)). "알려진 갭이 실제로 익스플로잇되기
+   전까지는 우선순위에서 밀린다"는 흔한 패턴을 그대로 보여준다.
 4. **인프라 제약이 기술 선택을 여러 단계로 역산시켰다.** "이미 NAS가 있다" → "NAS가 MariaDB를
    기본 지원한다" → "로컬도 같은 Apache+PHP 조합(XAMPP)으로 맞춘다"로 이어지는 연쇄, 그리고
    "Web Station GUI로 rewrite 설정을 못 만진다" → "HashRouter로 우회한다"는 연쇄가 둘 다 같은
@@ -490,7 +495,8 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 - [RottenNobleProject 아키텍처 이해하기](./RottenNobleProject-Architecture.md) — 세션별 코드 학습 기록(1~3회차)
 - [PHP](../WebDevelopment/PHP.md) · [MariaDB](../Database/MariaDB.md) · [Redis](../Infrastructure/Redis.md) — 백엔드 언어/저장소
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) · [비밀번호 해싱](../Security/Password-Hashing.md) ·
-  [CORS](../Network/CORS.md) · [Token Storage](../Security/Token-Storage.md) — 인증/보안
+  [CORS](../Network/CORS.md) · [Token Storage](../Security/Token-Storage.md) ·
+  [Rate Limiting](../Security/Rate-Limiting.md) · [저장 데이터 암호화](../Security/Encryption-at-Rest.md) — 인증/보안
 - [REST API 설계](../WebDevelopment/REST-API-Design.md) — 백엔드-프런트 통신 규약
 - [React](../WebDevelopment/React.md) · [React Router](../WebDevelopment/React-Router.md) · [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) — 프런트엔드
 - [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — 인프라
@@ -506,6 +512,7 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 개별 주제 문서 12개를 다 쓴 뒤 전체 그림을 한 문서로 종합 |
+| 2026-09-08 | CORS/rate limiting/암호화 반영 | 실제 스캔/프로빙 대응으로 추가된 방어 심층화를 기술 스택 표·특이할 점에 갱신 |
 
 </script>
 <script type="text/markdown" data-name="ComputerScience/Architecture/RottenNobleProject-Architecture.md">
@@ -1285,7 +1292,7 @@ function allow_cors(array $methods = ['GET']): void
 | 설정 난이도 | 매우 쉬움 | origin이 바뀔 때마다 코드 수정 필요 |
 | 쿠키 기반 인증과 함께 쓸 때 | 위험(CSRF 응답 탈취 가능) | 안전(허용된 origin만 응답 읽기 가능) |
 | 헤더 토큰 기반 인증과 함께 쓸 때 | 상대적으로 안전(토큰을 몰라서 못 뚫음) | 더 안전(방어선이 하나 더 있음) |
-| 이 프로젝트의 현재 상태 | 전체 엔드포인트에 적용 중 | (미적용, `MEMO-WEB-02`가 경고만 남김) |
+| 이 프로젝트의 현재 상태(~2026-09-08) | 전체 엔드포인트에 적용 중이었음 | 2026-09-08 스캔/프로빙 이후 전환 완료 — 아래 개정 이력 참고 |
 
 ## 질문
 
@@ -1313,10 +1320,19 @@ Access-Control-Request-Headers: content-type, authorization
 ```
 
 ```php
-// 서버가 응답해야 하는 헤더 (allow_cors()가 실제로 만드는 것)
+// 서버가 응답해야 하는 헤더 (2026-09-08 이전 allow_cors()가 실제로 만들던 것 — 지금은 아래 참고)
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: POST, OPTIONS
 Access-Control-Allow-Headers: Content-Type
+HTTP/1.1 204 No Content
+```
+
+```php
+// 2026-09-08 이후 — 요청 Origin이 허용목록에 있을 때만 그 origin을 그대로 반사한다
+Access-Control-Allow-Origin: https://rotten-noble.com
+Vary: Origin
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization
 HTTP/1.1 204 No Content
 ```
 
@@ -1333,11 +1349,16 @@ HTTP/1.1 204 No Content
 있는 서비스 등). 중요한 건 "쿠키를 쓰는 순간부터는 와일드카드를 쓸 수 없다"는 걸 기억하는 것 —
 나중에 이 프로젝트가 인증 방식을 쿠키 기반으로 바꾼다면, 이 와일드카드는 반드시 먼저 손봐야 한다.
 
+(2026-09-08 갱신) 실제로는 인증 방식을 안 바꾼 상태에서도 방어 심층화 차원에서 먼저 손봤다 —
+CSRF 경로가 원래 안전했다는 판단은 여전히 유효하지만, 스캐너가 이것저것 찔러보는 걸 실제로
+본 뒤로는 "지금 당장 위험하지 않다"와 "고칠 필요가 없다"는 다른 문제라고 판단했다.
+
 ## 같이 보기
 
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 이 프로젝트가 쿠키 대신 헤더 토큰을 쓰게 된 배경
 - [Token Storage (localStorage vs Cookie)](../Security/Token-Storage.md) — 토큰을 어디에 저장하느냐가
   CORS/CSRF 위험도에 미치는 영향
+- [Rate Limiting](../Security/Rate-Limiting.md) — 같은 날 함께 손본 또 다른 방어 심층화 항목
 
 ## 참고자료
 
@@ -1349,6 +1370,7 @@ HTTP/1.1 204 No Content
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 3회차 학습에서 발견한 CORS 와일드카드 드리프트를 독립 주제로 정리 |
+| 2026-09-08 | 와일드카드 → 명시적 origin 허용목록으로 실제 수정 | 사이트가 스캔/프로빙을 당한 뒤 방어 심층화로 `MEMO-WEB-02` 경고 항목을 실제로 해소 |
 
 </script>
 <script type="text/markdown" data-name="ComputerScience/Network/HTTPS-and-Mixed-Content.flow.md">
@@ -1534,6 +1556,175 @@ grep -r "https://rotten-noble.com" build/static/js/main.*.js
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | `MEMO-WEB-06`/`07`의 실제 장애 경험을 독립 주제로 정리 |
+
+</script>
+<script type="text/markdown" data-name="ComputerScience/Security/Encryption-at-Rest.md">
+# 저장 데이터 암호화(Encryption at Rest) — 해싱과 무엇이 다른가
+
+---
+
+- **카테고리**: 네트워크/보안, 데이터베이스
+- **상태**: 완료
+- **기준 시점**: 2026-09-08
+- **관련 레포지토리**: `RottenNoble-Project`
+
+---
+
+## 출처
+
+2026-09-08, 사이트가 스캔/프로빙을 당한 뒤 "DB가 통째로 유출되면 방명록에 남긴 이름까지 그대로
+읽힌다"는 지점이 눈에 띄어, 방명록 `name` 컬럼에 암호화를 붙이면서 정리한 주제.
+[Password-Hashing](./Password-Hashing.md)과 자주 헷갈리는 개념이라 그 문서와의 차이를 명확히
+짚는 데 집중했다.
+
+## 정의
+
+Encryption at rest는 "디스크/DB에 저장되는 동안" 데이터를 암호화해두는 것을 말한다. 핵심은
+**되돌릴 수 있다(복호화 가능)**는 점이다 — 올바른 키만 있으면 원래 값을 그대로 복원할 수 있다.
+이 점이 [비밀번호 해싱](./Password-Hashing.md)과의 결정적 차이다: 해싱은 의도적으로 되돌릴 수
+없게 설계되고(서버는 "일치하는가"만 확인하면 되지 원래 비밀번호를 알 필요가 없다), 암호화는
+"나중에 원래 값을 다시 보여줘야 하는" 데이터에 쓴다 — 이름, 주소, 전화번호처럼.
+
+## 요약
+
+"이 값을 나중에 다시 원래대로 보여줘야 하는가?"가 암호화와 해싱을 가르는 질문이다. 그렇다면
+암호화(가역), 아니라면(로그인 확인처럼 "일치 여부"만 필요하다면) 해싱(불가역)을 쓴다.
+
+## 상세
+
+### 왜 방명록 이름은 해싱이 아니라 암호화인가
+
+`get_guestbook.php`는 방문자 이름을 화면에 그대로 보여줘야 한다 — "익명123님이 작성"처럼.
+해시로 저장했다면 원래 이름을 복원할 방법이 없으므로 이 요구사항 자체를 만족할 수 없다.
+그래서 되돌릴 수 있는 암호화가 필요했다.
+
+### AES-256-GCM을 고른 이유
+
+```php
+// backend/lib/crypto.php
+function encrypt_field(string $plaintext): string
+{
+    $iv = random_bytes(12); // GCM 표준 96비트 nonce
+    $tag = '';
+    $ciphertext = openssl_encrypt($plaintext, 'aes-256-gcm', field_encryption_key(), OPENSSL_RAW_DATA, $iv, $tag);
+    return 'enc:v1:' . base64_encode($iv . $tag . $ciphertext);
+}
+```
+
+GCM(Galois/Counter Mode)은 "인증된 암호화(AEAD, Authenticated Encryption with Associated
+Data)" 모드다 — 암호화와 동시에 무결성 검증용 태그(`$tag`)를 만든다. 이게 왜 중요하냐면, 옛날
+방식인 CBC 모드는 암호화만 하고 "이 암호문이 변조되지 않았는가"는 별도로 확인해야 했는데,
+그 확인을 빼먹는 실수(패딩 오라클 공격 등으로 이어짐)가 실무에서 반복적으로 발생했다. GCM은
+`openssl_decrypt`에 태그를 같이 넘기면 태그가 안 맞을 때 자동으로 복호화를 실패(`false` 반환)
+시켜주므로, "복호화는 됐는데 사실 변조된 값이었다"는 사각지대가 구조적으로 줄어든다.
+
+### nonce(IV)를 매번 새로 만드는 이유
+
+`random_bytes(12)`로 매 암호화마다 새로운 IV(초기화 벡터, GCM에서는 nonce라고도 부른다)를
+만든다. 같은 키로 같은 IV를 재사용하면 GCM의 안전성 보장이 깨진다 — 두 암호문을 비교해서 평문에
+대한 정보가 새어나갈 수 있다. 그래서 IV는 "비밀"은 아니지만(그래서 암호문과 같이 평문으로
+저장해도 안전하다) "절대 재사용하면 안 되는 값"이다. 이 프로젝트는 IV+태그+암호문을 통째로
+이어붙여 base64로 인코딩해서 한 컬럼에 저장한다 — 복호화할 때 그 순서 그대로 다시 잘라내 쓴다.
+
+### 레거시 평문과의 공존 — 왜 마이그레이션 스크립트를 안 만들었나
+
+```php
+function decrypt_field(string $stored): string
+{
+    if (strpos($stored, 'enc:v1:') !== 0) {
+        return $stored; // 암호화 이전에 저장된 레거시 평문
+    }
+    // ... 복호화
+}
+```
+
+암호화를 도입하기 전에 이미 운영 DB에 평문으로 저장된 방명록 이름들이 있다. 이 값들을 일괄
+재암호화하는 마이그레이션 스크립트를 짤 수도 있었지만, `enc:v1:` 접두사로 "암호화된 값인지"를
+구분할 수 있게 해두면 새/옛 데이터가 같은 컬럼에 섞여 있어도 각자 올바르게 처리된다 — 접두사가
+없으면 그냥 그대로 반환한다. 마이그레이션 없이 배포 즉시 하위 호환이 되는 대신, 옛날 데이터는
+영원히 평문으로 남는다는 트레이드오프가 있다 — 이 프로젝트처럼 옛 데이터 양이 적고 위험도가
+낮은 개인 방명록에서는 합리적인 선택이지만, 규제 대상 개인정보라면 강제 재암호화 배치가
+필요했을 것이다.
+
+### 키는 어디에 두나 — 그리고 이게 왜 완전한 해법이 아닌가
+
+암호화 키(`field_encryption_key`)는 `config.local.php`에 base64로 저장된다. 이건 "DB만 유출된
+경우"(예: DB 백업 파일이 잘못 노출되거나, DB 서버만 뚫린 경우)를 막아준다 — 공격자가 암호문만
+가져가면 키 없이는 원문을 못 읽는다. 하지만 **애플리케이션 서버(파일시스템) 자체가 뚫리면**
+`config.local.php`도 같이 읽히므로 이 방어는 무력화된다. 즉 이 암호화는 "DB 유출"과 "서버 전체
+장악"을 서로 다른 위협으로 구분해서, 앞의 것만 막아주는 부분적 방어라는 걸 분명히 알아야 한다 —
+같은 날 "그럼 `config.local.php` 자체를 암호화하는 건 의미가 있는가"라는 질문도 나왔는데,
+결론은 "아니오"였다. 복호화 키를 자동화된 요청 처리 중에 읽으려면 결국 그 키도 서버의 어딘가에
+평문으로 있어야 하고, 파일시스템 접근 권한을 가진 공격자에게는 원본 파일을 암호화해도 그 옆의
+키 파일까지 같이 노출되므로 보호 효과가 없다 — 이 경우엔 파일 권한(`chmod 600`)처럼 접근 자체를
+좁히는 게 실질적인 방어다.
+
+## 비교표
+
+| | 비밀번호 해싱 (`password_hash`) | 필드 암호화 (AES-256-GCM) |
+|---|---|---|
+| 되돌릴 수 있는가 | 아니오(단방향) | 예(키만 있으면 복원) |
+| 서버가 원본 값을 알아야 하나 | 아니오 — 일치 여부만 확인 | 예 — 나중에 원본을 다시 보여줘야 함 |
+| 용도 | 로그인 비밀번호 | 이름/주소처럼 화면에 다시 표시해야 하는 개인정보 |
+| 키/솔트 유출 시 | 솔트가 유출돼도 각 해시는 여전히 개별 무차별 대입 필요 | 키가 유출되면 암호문 전부 즉시 복호화 가능 |
+
+## 질문
+
+- **Q. 방명록 `message`(작성 내용)는 왜 암호화 안 했나?**
+  A. `message`는 애초에 공개 게시판에 누구나 볼 수 있도록 방문자가 스스로 올린 글이다 — DB
+  유출 여부와 무관하게 이미 웹사이트에서 공개적으로 노출되는 값이라, 저장 시 암호화가 막아줄
+  위협이 없다. 반면 `name`은 짧은 별명/이름으로, 다른 서비스에서 재사용하는 개인 식별 정보일
+  가능성이 있어 구분했다.
+
+- **Q. 키를 나중에 바꾸고 싶으면?**
+  A. 이 구현은 키 회전을 지원하지 않는다 — 키를 바꾸면 그 전에 암호화된 모든 값이 복호화
+  불가능해진다. 진짜 키 회전이 필요하면 옛 키로 복호화 → 새 키로 재암호화하는 배치 작업이
+  별도로 필요하다(봉투 암호화(envelope encryption)처럼 "데이터 키"와 "키 암호화 키"를 분리하는
+  구조를 쓰면 이 배치 작업 없이도 회전할 수 있지만, 개인 프로젝트 규모에는 과하다고 판단했다).
+
+## 예시 코드
+
+```php
+// 저장 시
+$encryptedName = encrypt_field($name);
+$stmt->bind_param("ss", $encryptedName, $message); // INSERT ...
+
+// 조회 시
+$row['name'] = decrypt_field($row['name']);
+```
+
+## 플로우차트
+
+이 주제는 [Rate-Limiting.flow.md](./Rate-Limiting.flow.md)처럼 분기가 많은 흐름이 아니라
+"암호화 → 저장 → 조회 → 복호화"의 단순한 선형 흐름이라 별도 플로우차트 없이 위 예시 코드로
+충분하다고 판단했다.
+
+## 실무
+
+실무에서는 컬럼 단위 애플리케이션 암호화 대신 **DB 자체의 투명한 데이터 암호화(TDE,
+Transparent Data Encryption)**를 쓰는 경우도 많다 — MySQL/MariaDB의 InnoDB 테이블스페이스
+암호화, AWS RDS의 저장 암호화 등. TDE는 디스크에 물리적으로 접근했을 때(도난, 백업 파일 유출)를
+막아주지만, DB 자격증명으로 정상 접속한 쿼리에는 평문이 그대로 보인다 — 즉 "DB 서버가 뚫린 경우"
+방어는 애플리케이션 레벨 암호화만큼 강하지 않다. 반대로 애플리케이션 레벨 암호화는 이번처럼
+"쿼리 결과 자체는 유출됐지만 애플리케이션 서버까지는 안 뚫린" 시나리오를 막아준다 — 실무에서는
+둘을 같이 쓰는 경우가 흔하다(방어 심층화).
+
+## 같이 보기
+
+- [비밀번호 해싱](./Password-Hashing.md) — 암호화와 자주 혼동되는 "되돌릴 수 없는" 반대 개념
+- [Rate Limiting](./Rate-Limiting.md) — 같은 날 함께 추가한 또 다른 방어 심층화 항목
+- [Redis](../Infrastructure/Redis.md) — 이 프로젝트가 암호화 키와는 별개로 세션 토큰을 다루는 방식
+
+## 참고자료
+
+- [OWASP Cryptographic Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Cryptographic_Storage_Cheat_Sheet.html)
+- [PHP `openssl_encrypt` 공식 문서](https://www.php.net/manual/en/function.openssl-encrypt.php)
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-08 | 최초 작성 | 방명록 이름 컬럼에 AES-256-GCM 암호화 도입하면서 정리 |
 
 </script>
 <script type="text/markdown" data-name="ComputerScience/Security/JWT-vs-Redis-Session.flow.md">
@@ -1885,6 +2076,221 @@ Argon2id를 기본으로 권장하는 흐름이 있지만, 두 방식 모두 여
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | `login.php`의 `password_verify()` 사용을 계기로 독립 주제로 정리 |
+
+</script>
+<script type="text/markdown" data-name="ComputerScience/Security/Rate-Limiting.flow.md">
+# Rate Limiting — 요청 한 건이 허용/차단으로 갈리는 흐름
+
+> `Rate-Limiting.md`의 별첨 플로우차트. 작성 규칙은
+> `DevelopPrompt/Unity/VISUALIZE_RULE/04_MERMAID_STYLE.md`를 따른다.
+> 기준 시점: 2026-09-08
+
+```mermaid
+flowchart TD
+    REQ["요청 도착 (예: login.php)"] --> RC{"Redis 연결 가능?"}
+
+    RC -->|"실패"| SKIP["제한 없이 통과"]:::hi
+    SKIP --> HANDLER["원래 로직 실행"]:::good
+
+    RC -->|"성공"| INCR["INCR rate_limit:{bucket}:{ip}"]
+    INCR --> FIRST{"이번이 첫 요청?"}
+    FIRST -->|"예"| EXPIRE["EXPIRE로 시간 창 설정"]
+    EXPIRE --> CHECK
+    FIRST -->|"아니오"| CHECK{"카운트 > 한도?"}
+
+    CHECK -->|"아니오"| HANDLER
+    CHECK -->|"예"| BLOCK["429 응답, 즉시 종료"]:::bad
+
+    classDef bad  fill:#3a1f1f,stroke:#c0392b,color:#f5d5d5
+    classDef good fill:#1f3a2a,stroke:#27ae60,color:#d5f5e3
+    classDef hi   fill:#3a3320,stroke:#c19a5b,color:#f0e4c8
+```
+
+**읽는 법**: 왼쪽 갈래(`RC` → 실패 → `SKIP`)는 Redis 자체가 죽어있을 때의 경로다 — 이때는
+제한을 아예 걸지 않고 원래 로직을 그대로 실행한다(주황 노드). 오른쪽 갈래가 정상 경로: `INCR`로
+카운트를 올리고, 첫 요청이면 시간 창을 설정한 뒤, 한도를 넘었는지 확인해서 넘었으면 즉시 429로
+끊고(빨강), 아니면 원래 로직으로 넘어간다(초록).
+
+**핵심**: "Redis가 없으면 통과"와 "한도를 넘으면 차단"은 서로 다른 이유로 다른 결과를 낸다 —
+전자는 가용성을 지키기 위한 의도적 완화(fail open)이고, 후자는 보안을 위한 의도적 차단
+(fail closed)이다. 같은 함수 안에 두 가지 "실패 처리 철학"이 공존한다는 게 이 설계의 핵심이다.
+
+</script>
+<script type="text/markdown" data-name="ComputerScience/Security/Rate-Limiting.md">
+# Rate Limiting — 같은 요청을 얼마나 자주 허용할지 정하기
+
+---
+
+- **카테고리**: 네트워크/보안, 웹 개발
+- **상태**: 완료
+- **기준 시점**: 2026-09-08
+- **관련 레포지토리**: `RottenNoble-Project`
+
+---
+
+## 출처
+
+2026-09-08, 실제 배포된 `rotten-noble.com`을 대상으로 스캔/프로빙 활동이 있었다(핑, 코드 구조
+탐색, SQL 인젝션 시도). 인젝션은 기존 prepared statement 덕에 실패했지만, 로그인 엔드포인트에
+요청 횟수 제한이 전혀 없어 무차별 대입이나 단순 DoS에는 그대로 열려 있다는 게 드러났다. 이 문서는
+그 대응으로 `backend/lib/rate_limit.php`를 만들면서 정리한 것이다.
+
+## 정의
+
+Rate limiting은 "같은 클라이언트(보통 IP나 계정, 토큰 단위)가 정해진 시간 창 안에 특정 요청을
+몇 번까지 보낼 수 있는지"를 서버가 직접 세어서 제한하는 기법이다. 인증(누구인지 확인)이나
+인가(무엇을 할 수 있는지 확인)와는 다른 축이다 — 정당한 자격을 가진 사용자라도 "너무 자주"
+요청하면 막는다는 점이 핵심이다.
+
+## 요약
+
+Rate limiting은 "이 요청이 유효한가"가 아니라 "이 요청이 너무 잦은가"를 본다. 카운터를 어디에
+두느냐(메모리 vs 공유 저장소)와 어떤 알고리즘으로 세느냐(고정 창 vs 슬라이딩 윈도우 vs 토큰
+버킷)에 따라 정확도와 구현 난이도가 갈린다.
+
+## 상세
+
+### 왜 인증만으로는 부족한가
+
+로그인 엔드포인트(`login.php`)는 아이디/비밀번호가 틀리면 401을 반환한다 — 이건 인증 실패를
+정확히 처리하는 것이지, "시도 횟수"를 세는 것과는 무관하다. 공격자는 초당 수백 번씩 비밀번호를
+바꿔가며 요청을 보낼 수 있고, 서버는 매번 성실하게 "틀렸습니다"라고 답하며 CPU(`password_verify`는
+의도적으로 느리게 설계된 bcrypt를 쓴다)와 네트워크 대역폭을 소모한다. 즉 인증 로직 자체는 이미
+올바르게 동작하고 있어도, 그 앞에 "이 IP가 최근 몇 번 시도했는가"를 세는 계층이 없으면 서버가
+공짜로 무차별 대입 공격 상대를 해주는 꼴이 된다.
+
+### 카운터를 어디에 두나 — 메모리 vs Redis
+
+PHP는 요청마다 새 프로세스(또는 요청 단위로 초기화되는 워커)로 실행되기 때문에, 일반 변수나
+정적 배열에 카운터를 두면 다음 요청이 왔을 때 이미 사라지고 없다. 카운트가 요청 간에 살아남으려면
+요청 밖의 공유 저장소가 필요하다 — `RottenNoble-Project`는 이미 관리자 세션에 Redis를 쓰고
+있으므로([[jwt-vs-redis-session]] 참고) 같은 인스턴스를 그대로 재사용했다.
+
+```php
+// backend/lib/rate_limit.php
+function rate_limit_check(string $bucket, int $maxRequests, int $windowSeconds): void
+{
+    $key = 'rate_limit:' . $bucket . ':' . client_ip();
+
+    $redis = redis_connect();
+    $count = $redis->incr($key);
+    if ($count === 1) {
+        $redis->expire($key, $windowSeconds);
+    }
+
+    if ($count > $maxRequests) {
+        send_error('요청이 너무 많습니다. 잠시 후 다시 시도하세요.', 429);
+    }
+}
+```
+
+`INCR`은 Redis가 원자적으로 처리하는 명령이다 — "GET으로 현재 값을 읽고 +1해서 SET한다"를
+애플리케이션 코드에서 직접 하면, 동시에 두 요청이 들어왔을 때 둘 다 같은 값을 읽고 둘 다 같은
+값으로 SET해버리는 경쟁 상태(race condition)가 생긴다. `INCR`은 이 read-modify-write를 Redis
+서버 안에서 한 번에 처리하므로 이 문제가 없다.
+
+키가 새로 생긴 시점(`$count === 1`)에만 `EXPIRE`를 걸어 시간 창을 설정한다 — 이게 "고정 창(fixed
+window)" 방식이다. 창이 시작된 시점부터 `$windowSeconds`가 지나면 Redis가 키를 자동으로 지워서
+카운터가 0으로 리셋된다.
+
+### 왜 Redis 연결 실패 시 그냥 통과시키나
+
+```php
+try {
+    $redis = redis_connect();
+    // ...
+} catch (Throwable $e) {
+    return; // 제한 없이 통과
+}
+```
+
+이건 "실패를 무시하는 안일한 코드"처럼 보일 수 있지만 의도적인 선택이다. Redis가 잠깐
+내려갔다고 해서 로그인이나 방명록 작성 자체가 막히면, rate limiting이라는 부가 기능이 핵심
+기능의 가용성을 해치는 역설적인 상황이 된다. 보안 기능을 추가할 때는 "이 기능이 실패하면 무엇이
+더 나쁜가"를 먼저 판단해야 한다 — 여기서는 "가끔 rate limit이 안 걸리는 것"이 "Redis 한 번 흔들릴
+때마다 사이트가 로그인 불가 상태가 되는 것"보다 훨씬 낫다.
+
+### 고정 창의 한계
+
+고정 창 방식은 구현이 간단하지만 "창 경계에서의 버스트"에 약하다. 예를 들어 5분 창에 5회
+제한이라면, 공격자가 4분 59초에 5번, 5분 1초(다음 창 시작 직후)에 또 5번을 보내면 사실상
+10초 안에 10번을 통과시켜준 셈이다. 이보다 정교한 방식(슬라이딩 윈도우, 토큰 버킷)은 이 문제를
+줄이지만 구현이 더 복잡하다 — 개인 포트폴리오 규모에서는 고정 창의 단순함과 이 정도 허점을
+맞바꿀 만하다고 판단했다.
+
+## 비교표
+
+| 방식 | 정확도 | 구현 난이도 | 이 프로젝트의 선택 |
+|---|---|---|---|
+| 고정 창(fixed window) | 창 경계 버스트에 약함 | 낮음(INCR+EXPIRE 두 줄) | 사용 중 |
+| 슬라이딩 윈도우(sliding window log) | 정확함 | 중간(타임스탬프 목록 관리 필요) | 미사용 |
+| 토큰 버킷(token bucket) | 순간 버스트를 일부 허용하면서도 평균은 제한 | 중간~높음 | 미사용 |
+
+## 질문
+
+- **Q. IP 기반 제한이면 같은 공유기를 쓰는 여러 사용자가 서로 영향을 주지 않나?**
+  A. 맞다 — 카페나 회사처럼 NAT 뒤에서 IP를 공유하는 환경이면, 한 명이 제한에 걸리면 같은
+  공인 IP를 쓰는 다른 사람도 영향을 받는다. 로그인처럼 "계정"이 특정되는 요청은 IP와 계정 ID를
+  같이 묶어 제한하면 이 문제를 줄일 수 있지만, `RottenNoble-Project`는 관리자가 1명뿐이라 계정
+  단위로 나눌 실익이 없어 IP 단위로만 두었다.
+
+- **Q. 진짜 분산 서비스 거부 공격(여러 IP에서 동시에)도 이걸로 막을 수 있나?**
+  A. 아니다. IP당 제한은 "한 IP가 혼자 너무 자주 요청하는 것"만 막는다. 수백~수천 개의 서로 다른
+  IP에서 동시에 소량씩 요청이 오면 각 IP는 제한에 안 걸리면서 서버 전체는 부하를 받을 수 있다.
+  이건 애플리케이션 코드가 아니라 CDN/WAF(예: Cloudflare) 같은 앞단 인프라가 처리할 영역이다 —
+  rate limiting과 WAF는 같은 문제의 다른 층을 담당한다.
+
+## 예시 코드
+
+```php
+// login.php에 적용한 실제 위치 — CORS/메서드 검사 다음, 비밀번호 확인 전
+allow_cors(['POST']);
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    send_error('POST만 허용됩니다.', 405);
+}
+
+rate_limit_check('login', 5, 300); // IP당 5분에 5회
+
+$body = json_decode(file_get_contents('php://input'), true);
+// ... 비밀번호 확인은 이 다음
+```
+
+성공/실패 여부와 무관하게 요청이 들어온 시점에 카운트한다 — "실패한 시도만 센다"고 하면
+공격자가 항상 성공하는 요청(예: 이미 아는 계정으로 로그인)을 반복해서 다른 목적(DoS)으로
+악용할 여지가 남기 때문이다.
+
+## 플로우차트
+
+`Rate-Limiting.flow.md` 참고 — 요청이 들어와서 허용/차단으로 갈리는 전체 흐름.
+
+## 실무
+
+실무에서는 애플리케이션 코드에 직접 rate limiting을 넣기보다, API 게이트웨이(Kong, AWS API
+Gateway)나 리버스 프록시(Nginx `limit_req`, Cloudflare Rate Limiting) 계층에서 처리하는 경우가
+많다 — 요청이 애플리케이션 서버(여기서는 PHP-FPM/Apache)에 도달하기도 전에 걸러낼 수 있어서
+더 효율적이고, 여러 서비스에 동일한 정책을 일관되게 적용하기도 쉽다. `RottenNoble-Project`는
+그런 앞단 인프라가 없는 개인 NAS 배포라 애플리케이션 레벨(PHP+Redis)에서 직접 구현했다 — 이후
+Cloudflare 같은 프록시를 앞에 두게 되면, 거기서도 한 번 더 제한을 걸어 이중 방어선을 만드는 게
+자연스러운 다음 단계다.
+
+## 같이 보기
+
+- [Redis](../Infrastructure/Redis.md) — 이 프로젝트가 이미 세션 저장에 쓰던 Redis를 rate limit
+  카운터 저장소로도 재사용한 배경
+- [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 같은 Redis 인스턴스를 세션에 쓰는
+  이유
+- [CORS](./CORS.md) — 같은 날 함께 손본 또 다른 방어 심층화 항목
+
+## 참고자료
+
+- [Redis INCR 명령 문서](https://redis.io/docs/latest/commands/incr/)
+- [Cloudflare — Rate limiting이란](https://www.cloudflare.com/learning/bots/what-is-rate-limiting/)
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-08 | 최초 작성 | 실제 스캔/프로빙 대응으로 로그인·방명록·관리자 쓰기 엔드포인트에 rate limiting 도입 |
 
 </script>
 <script type="text/markdown" data-name="ComputerScience/Security/Token-Storage.md">

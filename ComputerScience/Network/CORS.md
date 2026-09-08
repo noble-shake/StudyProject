@@ -108,7 +108,7 @@ function allow_cors(array $methods = ['GET']): void
 | 설정 난이도 | 매우 쉬움 | origin이 바뀔 때마다 코드 수정 필요 |
 | 쿠키 기반 인증과 함께 쓸 때 | 위험(CSRF 응답 탈취 가능) | 안전(허용된 origin만 응답 읽기 가능) |
 | 헤더 토큰 기반 인증과 함께 쓸 때 | 상대적으로 안전(토큰을 몰라서 못 뚫음) | 더 안전(방어선이 하나 더 있음) |
-| 이 프로젝트의 현재 상태 | 전체 엔드포인트에 적용 중 | (미적용, `MEMO-WEB-02`가 경고만 남김) |
+| 이 프로젝트의 현재 상태(~2026-09-08) | 전체 엔드포인트에 적용 중이었음 | 2026-09-08 스캔/프로빙 이후 전환 완료 — 아래 개정 이력 참고 |
 
 ## 질문
 
@@ -136,10 +136,19 @@ Access-Control-Request-Headers: content-type, authorization
 ```
 
 ```php
-// 서버가 응답해야 하는 헤더 (allow_cors()가 실제로 만드는 것)
+// 서버가 응답해야 하는 헤더 (2026-09-08 이전 allow_cors()가 실제로 만들던 것 — 지금은 아래 참고)
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Methods: POST, OPTIONS
 Access-Control-Allow-Headers: Content-Type
+HTTP/1.1 204 No Content
+```
+
+```php
+// 2026-09-08 이후 — 요청 Origin이 허용목록에 있을 때만 그 origin을 그대로 반사한다
+Access-Control-Allow-Origin: https://rotten-noble.com
+Vary: Origin
+Access-Control-Allow-Methods: POST, OPTIONS
+Access-Control-Allow-Headers: Content-Type, Authorization
 HTTP/1.1 204 No Content
 ```
 
@@ -156,11 +165,16 @@ HTTP/1.1 204 No Content
 있는 서비스 등). 중요한 건 "쿠키를 쓰는 순간부터는 와일드카드를 쓸 수 없다"는 걸 기억하는 것 —
 나중에 이 프로젝트가 인증 방식을 쿠키 기반으로 바꾼다면, 이 와일드카드는 반드시 먼저 손봐야 한다.
 
+(2026-09-08 갱신) 실제로는 인증 방식을 안 바꾼 상태에서도 방어 심층화 차원에서 먼저 손봤다 —
+CSRF 경로가 원래 안전했다는 판단은 여전히 유효하지만, 스캐너가 이것저것 찔러보는 걸 실제로
+본 뒤로는 "지금 당장 위험하지 않다"와 "고칠 필요가 없다"는 다른 문제라고 판단했다.
+
 ## 같이 보기
 
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 이 프로젝트가 쿠키 대신 헤더 토큰을 쓰게 된 배경
 - [Token Storage (localStorage vs Cookie)](../Security/Token-Storage.md) — 토큰을 어디에 저장하느냐가
   CORS/CSRF 위험도에 미치는 영향
+- [Rate Limiting](../Security/Rate-Limiting.md) — 같은 날 함께 손본 또 다른 방어 심층화 항목
 
 ## 참고자료
 
@@ -172,3 +186,4 @@ HTTP/1.1 204 No Content
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 3회차 학습에서 발견한 CORS 와일드카드 드리프트를 독립 주제로 정리 |
+| 2026-09-08 | 와일드카드 → 명시적 origin 허용목록으로 실제 수정 | 사이트가 스캔/프로빙을 당한 뒤 방어 심층화로 `MEMO-WEB-02` 경고 항목을 실제로 해소 |
