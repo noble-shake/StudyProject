@@ -1,7 +1,8 @@
 # {주제}
 
-> 새 주제를 시작할 때 이 파일을 복사해서 쓴다. 정책 전문은 `DevelopPrompt/POLICY/STUDY.md`의
-> "StudyProject 연동" 참고.
+> 새 주제를 시작할 때 이 파일을 `ComputerScience/{분야}/{주제}.md`로 복사해서 쓴다 — 폴더
+> 트리는 저장소 루트 `README.md`의 "카테고리 지도" 참고. 맞는 분야 폴더가 없으면 새로 만든다.
+> 정책 전문은 `DevelopPrompt/POLICY/STUDY.md`의 "StudyProject 연동" 참고.
 >
 > **이 저장소의 문서는 AI가 참고할 컨텍스트가 아니라 사람이 읽고 배우는 교재다.**
 > `DevelopPrompt`의 `CODE_MEMO.md`·정책 문서처럼 압축된 표기(백틱+경로 나열, 최소 단어)를 쓰지 않는다.
