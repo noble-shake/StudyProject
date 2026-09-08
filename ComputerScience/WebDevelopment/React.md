@@ -167,7 +167,7 @@ TanStack Query 같은 라이브러리가 로딩/에러/캐싱 상태 관리를 �
 
 - [React Router](./React-Router.md) — 이 프로젝트가 페이지 간 이동을 처리하는 방식
 - [CRA → Vite 마이그레이션](./CRA-vs-Vite.md) — React 자체가 아니라 이를 감싼 빌드 도구의 문제
-- [Token Storage](./Token-Storage.md) — `isLoggedIn()`처럼 React 바깥(localStorage) 상태를
+- [Token Storage](../Security/Token-Storage.md) — `isLoggedIn()`처럼 React 바깥(localStorage) 상태를
   컴포넌트 상태와 동기화하는 방식
 
 ## 참고자료

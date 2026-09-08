@@ -2,7 +2,7 @@
 
 > 진행 상태: **완료** — 이 세션 일지(1~3회차)로 코드 구조를 다 훑었고, 여기서 나온 각 기술은
 > 독립된 주제 문서로 분리해 정리했다. 전체 그림은
-> [`RottenNoble-Project.md`](RottenNoble-Project.md)(저장소 개요) 참고.
+> [`RottenNoble-Project.md`](./RottenNoble-Project.md)(저장소 개요) 참고.
 
 ## 출처
 

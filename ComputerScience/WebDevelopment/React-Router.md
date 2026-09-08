@@ -138,7 +138,7 @@ index.html로"라는 rewrite 규칙을 기본 설정이나 한 줄짜리 설정 
 ## 같이 보기
 
 - [React](./React.md) — React Router가 얹히는 기반 라이브러리
-- [자체 호스팅(NAS) vs 클라우드](./Self-Hosting-vs-Cloud.md) — 이 라우팅 제약이 발생한 근본
+- [자체 호스팅(NAS) vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) — 이 라우팅 제약이 발생한 근본
   원인(관리 콘솔의 한계)
 
 ## 참고자료

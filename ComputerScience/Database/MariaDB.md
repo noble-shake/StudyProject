@@ -151,8 +151,8 @@ PDO 위에 자체 쿼리 빌더/ORM(Eloquent)을 얹어서 SQL을 직접 안 써
 
 ## 같이 보기
 
-- [PHP](./PHP.md) — `mysqli` 확장이 속한 언어, `db.php`가 커넥션을 만드는 방식
-- [Redis](./Redis.md) — 같은 프로젝트에서 관계형 데이터(글, 방명록)는 MariaDB, 세션 같은 휘발성
+- [PHP](../WebDevelopment/PHP.md) — `mysqli` 확장이 속한 언어, `db.php`가 커넥션을 만드는 방식
+- [Redis](../Infrastructure/Redis.md) — 같은 프로젝트에서 관계형 데이터(글, 방명록)는 MariaDB, 세션 같은 휘발성
   데이터는 Redis로 나눠 쓰는 이유
 
 ## 참고자료

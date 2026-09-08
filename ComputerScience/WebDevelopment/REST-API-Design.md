@@ -155,7 +155,7 @@ GraphQL이나 tRPC(TypeScript 풀스택 환경)처럼 "REST + 봉투"라는 관�
 ## 같이 보기
 
 - [PHP](./PHP.md) — 이 봉투를 만드는 `response.php`가 속한 언어/구조
-- [CORS](./CORS.md) — 같은 `response.php`가 담당하는 또 다른 공통 관심사
+- [CORS](../Network/CORS.md) — 같은 `response.php`가 담당하는 또 다른 공통 관심사
 
 ## 참고자료
 

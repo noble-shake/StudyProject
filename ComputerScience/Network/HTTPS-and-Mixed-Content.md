@@ -128,7 +128,7 @@ grep -r "https://rotten-noble.com" build/static/js/main.*.js
 
 ## 같이 보기
 
-- [자체 호스팅(NAS) vs 클라우드](./Self-Hosting-vs-Cloud.md) — 이 포트 충돌 자체가 NAS를 직접
+- [자체 호스팅(NAS) vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) — 이 포트 충돌 자체가 NAS를 직접
   운영하기로 한 선택에서 비롯된 함정
 - [CORS](./CORS.md) — 같은 origin 정책 안에서 프로토콜(http/https)도 origin의 일부라는 점이 서로
   연결된다

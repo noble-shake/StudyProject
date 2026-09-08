@@ -147,9 +147,9 @@ Redis를 새로 띄운다"는 이 프로젝트의 쓰임새는 실무 기준으�
 
 ## 같이 보기
 
-- [JWT vs Redis 세션](./JWT-vs-Redis-Session.md) — 이 Redis 세션 방식과 JWT의 실질적 비교(`STUDY-01`)
-- [PHP](./PHP.md) — `redis_client.php`가 속한 언어, 소켓 통신(`fsockopen`) 사용
-- [MariaDB](./MariaDB.md) — 같은 프로젝트에서 영구 데이터를 담당하는 다른 저장소
+- [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 이 Redis 세션 방식과 JWT의 실질적 비교(`STUDY-01`)
+- [PHP](../WebDevelopment/PHP.md) — `redis_client.php`가 속한 언어, 소켓 통신(`fsockopen`) 사용
+- [MariaDB](../Database/MariaDB.md) — 같은 프로젝트에서 영구 데이터를 담당하는 다른 저장소
 
 ## 참고자료
 

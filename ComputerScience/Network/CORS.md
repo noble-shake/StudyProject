@@ -158,8 +158,8 @@ HTTP/1.1 204 No Content
 
 ## 같이 보기
 
-- [JWT vs Redis 세션](./JWT-vs-Redis-Session.md) — 이 프로젝트가 쿠키 대신 헤더 토큰을 쓰게 된 배경
-- [Token Storage (localStorage vs Cookie)](./Token-Storage.md) — 토큰을 어디에 저장하느냐가
+- [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 이 프로젝트가 쿠키 대신 헤더 토큰을 쓰게 된 배경
+- [Token Storage (localStorage vs Cookie)](../Security/Token-Storage.md) — 토큰을 어디에 저장하느냐가
   CORS/CSRF 위험도에 미치는 영향
 
 ## 참고자료

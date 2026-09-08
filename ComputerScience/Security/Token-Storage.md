@@ -12,7 +12,7 @@
 ## 출처
 
 `RottenNobleProject` — `RottenNobleProject-Architecture.md` 3회차(인증 흐름) 코드 학습에서
-`frontend/src/api/auth.js`의 `localStorage` 사용을 보다가 분리한 주제. [CORS](./CORS.md)에서
+`frontend/src/api/auth.js`의 `localStorage` 사용을 보다가 분리한 주제. [CORS](../Network/CORS.md)에서
 다룬 "왜 이 프로젝트는 CSRF에 상대적으로 안전한가"의 근본 원인이 바로 이 저장 방식이다.
 
 ## 정의
@@ -25,7 +25,7 @@
 ## 요약
 
 이 프로젝트는 토큰을 `localStorage`에 저장하고, 매 요청마다 자바스크립트가 직접
-`Authorization: Bearer {token}` 헤더에 실어 보낸다 — 이 선택이 [CORS](./CORS.md) 문서에서 본
+`Authorization: Bearer {token}` 헤더에 실어 보낸다 — 이 선택이 [CORS](../Network/CORS.md) 문서에서 본
 "와일드카드가 있어도 CSRF는 안 통한다"는 결과의 진짜 원인이다. 대신 XSS(악성 스크립트 주입)
 공격에는 쿠키 방식보다 더 취약하다는 대가가 있다.
 
@@ -62,14 +62,14 @@ export function authHeaders() {
 만약 서버가 로그인 응답에서 `Set-Cookie: session=...` 헤더로 토큰을 내려줬다면, 그 뒤로는
 브라우저가 알아서 그 쿠키를 **같은 도메인으로 가는 모든 요청에 자동으로** 실어 보낸다.
 개발자가 매 요청마다 헤더를 직접 챙길 필요가 없어서 편리하지만, 바로 이 "자동으로"라는 성질이
-[CORS 문서](./CORS.md)에서 설명한 CSRF 문제의 근원이다 — 다른 사이트가 몰래 요청을 보내도
+[CORS 문서](../Network/CORS.md)에서 설명한 CSRF 문제의 근원이다 — 다른 사이트가 몰래 요청을 보내도
 브라우저가 쿠키를 자동으로 붙여주기 때문이다.
 
 ### 왜 `localStorage`를 골랐는가 (추정)
 
 이 프로젝트의 문서에는 `localStorage`를 선택한 이유가 명시적으로 남아있지는 않다. 다만 코드
 구조로 보면, 기존 `RottenNoble-HttpServer`/`TCPServer`가 이미 헤더 기반 토큰 인증 방식으로
-Redis 세션을 다루고 있었고([Redis](./Redis.md), `MEMO-WEB-04`), 그 인프라와 일관된 인증
+Redis 세션을 다루고 있었고([Redis](../Infrastructure/Redis.md), `MEMO-WEB-04`), 그 인프라와 일관된 인증
 방식(Bearer 토큰)을 프런트에도 그대로 적용하다 보니 자연스럽게 "토큰을 어딘가에 저장했다가
 헤더로 직접 실어 보내야 하는" `localStorage` 방식으로 이어진 것으로 보인다. 헤더 기반 인증은
 애초에 쿠키가 아니므로, 저장 위치도 쿠키가 아닌 `localStorage`나 `sessionStorage`가 자연스러운
@@ -149,10 +149,10 @@ export function authHeaders() {
 
 ## 같이 보기
 
-- [CORS](./CORS.md) — 이 저장 방식이 CSRF 방어에 미치는 실제 효과
+- [CORS](../Network/CORS.md) — 이 저장 방식이 CSRF 방어에 미치는 실제 효과
 - [JWT vs Redis 세션](./JWT-vs-Redis-Session.md) — 토큰이 "무엇을 담고 있는가"의 문제, 이 문서는
   "어디에 저장하는가"의 문제로 서로 다른 축이다
-- [React](./React.md) — JSX의 기본 이스케이프가 XSS 위험을 줄여주는 방식
+- [React](../WebDevelopment/React.md) — JSX의 기본 이스케이프가 XSS 위험을 줄여주는 방식
 
 ## 참고자료
 

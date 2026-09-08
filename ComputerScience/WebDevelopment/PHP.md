@@ -153,8 +153,8 @@ send_json($posts);
 
 ## 같이 보기
 
-- [MariaDB](./MariaDB.md) — 이 프로젝트에서 PHP가 `mysqli`로 접속하는 데이터베이스
-- [Redis](./Redis.md) — PHP가 세션 토큰을 저장하기 위해 직접 프로토콜을 구현해 붙인 저장소
+- [MariaDB](../Database/MariaDB.md) — 이 프로젝트에서 PHP가 `mysqli`로 접속하는 데이터베이스
+- [Redis](../Infrastructure/Redis.md) — PHP가 세션 토큰을 저장하기 위해 직접 프로토콜을 구현해 붙인 저장소
 
 ## 참고자료
 

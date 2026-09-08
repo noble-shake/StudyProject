@@ -34,6 +34,6 @@ sequenceDiagram
 
 **핵심**: 토큰 자체는 클라이언트(브라우저)가 들고 있고, 그 토큰이 유효한지는 매 요청마다 Redis에
 물어봐야 알 수 있다 — 서버(PHP)는 토큰의 유효성을 스스로 판단할 수 없고 항상 Redis가 최종 권한을
-가진다. (이 지점이 [JWT-vs-Redis-Session.md](./JWT-vs-Redis-Session.md)에서 JWT와 정반대로
+가진다. (이 지점이 [JWT-vs-Redis-Session.md](../Security/JWT-vs-Redis-Session.md)에서 JWT와 정반대로
 갈리는 지점이다 — JWT라면 서명만 검증하면 되므로 이 그림의 `E->>R` / `R-->>E` 두 화살표 자체가
 없어진다.)

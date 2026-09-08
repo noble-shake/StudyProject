@@ -12,7 +12,7 @@
 > 이 문서는 개별 기술 하나를 다루는 다른 문서들과 달리, **`RottenNoble-Project` 저장소 전체를
 > 조망하는 색인 겸 아키텍처 요약**이다. 각 기술의 자세한 설명은 아래 표에서 링크된 개별 문서를
 > 본다. 코드를 순서대로 훑어간 세션 기록 자체는
-> [`RottenNobleProject-Architecture.md`](RottenNobleProject-Architecture.md)에 남아있다.
+> [`RottenNobleProject-Architecture.md`](./RottenNobleProject-Architecture.md)에 남아있다.
 
 ## 출처
 
@@ -64,18 +64,18 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 
 | 계층 | 기술 | 상세 문서 |
 |---|---|---|
-| 백엔드 언어 | PHP 8.x, 프레임워크 없음 | [PHP](./PHP.md) |
-| 관계형 DB | MariaDB 10 (`mysqli`) | [MariaDB](./MariaDB.md) |
-| 세션 저장소 | Redis (RESP 프로토콜 직접 구현) | [Redis](./Redis.md) |
-| 인증 방식 | Opaque 토큰 + Redis 세션 (JWT 아님) | [JWT vs Redis 세션](./JWT-vs-Redis-Session.md) |
-| 비밀번호 저장 | bcrypt (`password_hash`/`password_verify`) | [비밀번호 해싱](./Password-Hashing.md) |
-| API 스타일 | REST + `{status, data\|message}` 봉투 | [REST API 설계](./REST-API-Design.md) |
-| 프런트엔드 | React 19 | [React](./React.md) |
-| 라우팅 | react-router-dom, `HashRouter` | [React Router](./React-Router.md) |
-| 빌드 도구 | CRA(`react-scripts` 5.0.1) → Vite 검토 중 | [CRA → Vite](./CRA-vs-Vite.md) |
-| 토큰 저장 | 브라우저 `localStorage` | [Token Storage](./Token-Storage.md) |
-| CORS | 와일드카드(`Access-Control-Allow-Origin: *`) | [CORS](./CORS.md) |
-| 배포 인프라 | Synology NAS Web Station, Let's Encrypt | [HTTPS & Mixed Content](./HTTPS-and-Mixed-Content.md), [자체 호스팅 vs 클라우드](./Self-Hosting-vs-Cloud.md) |
+| 백엔드 언어 | PHP 8.x, 프레임워크 없음 | [PHP](../WebDevelopment/PHP.md) |
+| 관계형 DB | MariaDB 10 (`mysqli`) | [MariaDB](../Database/MariaDB.md) |
+| 세션 저장소 | Redis (RESP 프로토콜 직접 구현) | [Redis](../Infrastructure/Redis.md) |
+| 인증 방식 | Opaque 토큰 + Redis 세션 (JWT 아님) | [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) |
+| 비밀번호 저장 | bcrypt (`password_hash`/`password_verify`) | [비밀번호 해싱](../Security/Password-Hashing.md) |
+| API 스타일 | REST + `{status, data\|message}` 봉투 | [REST API 설계](../WebDevelopment/REST-API-Design.md) |
+| 프런트엔드 | React 19 | [React](../WebDevelopment/React.md) |
+| 라우팅 | react-router-dom, `HashRouter` | [React Router](../WebDevelopment/React-Router.md) |
+| 빌드 도구 | CRA(`react-scripts` 5.0.1) → Vite 검토 중 | [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) |
+| 토큰 저장 | 브라우저 `localStorage` | [Token Storage](../Security/Token-Storage.md) |
+| CORS | 와일드카드(`Access-Control-Allow-Origin: *`) | [CORS](../Network/CORS.md) |
+| 배포 인프라 | Synology NAS Web Station, Let's Encrypt | [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md), [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) |
 
 ## 특이할 점
 
@@ -105,13 +105,13 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 
 ## 같이 보기 (문서 전체 지도)
 
-- [RottenNobleProject 아키텍처 이해하기](RottenNobleProject-Architecture.md) — 세션별 코드 학습 기록(1~3회차)
-- [PHP](./PHP.md) · [MariaDB](./MariaDB.md) · [Redis](./Redis.md) — 백엔드 언어/저장소
-- [JWT vs Redis 세션](./JWT-vs-Redis-Session.md) · [비밀번호 해싱](./Password-Hashing.md) ·
-  [CORS](./CORS.md) · [Token Storage](./Token-Storage.md) — 인증/보안
-- [REST API 설계](./REST-API-Design.md) — 백엔드-프런트 통신 규약
-- [React](./React.md) · [React Router](./React-Router.md) · [CRA → Vite](./CRA-vs-Vite.md) — 프런트엔드
-- [자체 호스팅 vs 클라우드](./Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](./HTTPS-and-Mixed-Content.md) — 인프라
+- [RottenNobleProject 아키텍처 이해하기](./RottenNobleProject-Architecture.md) — 세션별 코드 학습 기록(1~3회차)
+- [PHP](../WebDevelopment/PHP.md) · [MariaDB](../Database/MariaDB.md) · [Redis](../Infrastructure/Redis.md) — 백엔드 언어/저장소
+- [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) · [비밀번호 해싱](../Security/Password-Hashing.md) ·
+  [CORS](../Network/CORS.md) · [Token Storage](../Security/Token-Storage.md) — 인증/보안
+- [REST API 설계](../WebDevelopment/REST-API-Design.md) — 백엔드-프런트 통신 규약
+- [React](../WebDevelopment/React.md) · [React Router](../WebDevelopment/React-Router.md) · [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) — 프런트엔드
+- [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — 인프라
 
 ## 참고자료
 

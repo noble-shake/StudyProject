@@ -42,13 +42,13 @@ RottenNobleProject가 Synology NAS를 프로덕션 서버로 고른 이유는 "�
 일단 NAS로 정해지자, 그 뒤의 여러 기술 선택이 거기서 역산됐다:
 
 - **DB가 MariaDB인 이유** — Synology 패키지 센터가 기본 지원하는 관계형 DB가 MariaDB라서
-  ([MariaDB](./MariaDB.md) 참고). 클라우드였다면 RDS에서 MySQL/PostgreSQL/MariaDB 중 자유롭게
+  ([MariaDB](../Database/MariaDB.md) 참고). 클라우드였다면 RDS에서 MySQL/PostgreSQL/MariaDB 중 자유롭게
   골랐을 것이다.
 - **로컬 개발 환경이 XAMPP인 이유** — 프로덕션이 Apache 기반 Web Station이라, 로컬도 같은
   Apache+PHP 조합으로 맞춰서 "로컬에서 되면 배포해서도 될 확률"을 높이려는 판단.
 - **포트/인증서 함정들** — 클라우드 로드밸런서나 관리형 인증서 서비스(AWS Certificate Manager
   등)를 쓴다면 자동으로 처리됐을 일들(포트 충돌, ACME 챌린지 라우팅)을 전부 직접 겪었다
-  ([HTTPS & Mixed Content](./HTTPS-and-Mixed-Content.md) 참고).
+  ([HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) 참고).
 
 ### 클라우드였다면 안 겪었을 것, 그래도 얻은 것
 
@@ -107,8 +107,8 @@ RottenNobleProject가 Synology NAS를 프로덕션 서버로 고른 이유는 "�
 
 ## 같이 보기
 
-- [MariaDB](./MariaDB.md) — NAS 제약에서 역산된 DB 선택
-- [HTTPS & Mixed Content](./HTTPS-and-Mixed-Content.md) — NAS 자체 호스팅이 실제로 만든 인증서
+- [MariaDB](../Database/MariaDB.md) — NAS 제약에서 역산된 DB 선택
+- [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — NAS 자체 호스팅이 실제로 만든 인증서
   발급 함정
 
 ## 참고자료

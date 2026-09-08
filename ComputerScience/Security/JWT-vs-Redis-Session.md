@@ -105,7 +105,7 @@ JWT의 "저장소 조회가 필요 없다"는 장점이 사실상 사라진다 �
   민감한 작업 전에만 추가 확인" 같은 절충이 JWT의 이점을 살릴 수 있다.
 
 - **Q. "Redis 세션도 결국 저장소 조회가 필요하니 JWT의 무상태성만큼 빠르지 않다"는 말이 맞나?**
-  A. 맞다. 다만 Redis 자체가 메모리 기반이라 그 조회 자체가 매우 빠르다([Redis](./Redis.md) 참고).
+  A. 맞다. 다만 Redis 자체가 메모리 기반이라 그 조회 자체가 매우 빠르다([Redis](../Infrastructure/Redis.md) 참고).
   "저장소 조회가 없다"는 JWT의 이론적 이점이 실무에서 체감될 만큼 크려면, 그 저장소 조회가 실제
   병목이 될 정도의 트래픽 규모여야 한다 — 이 프로젝트는 그런 규모가 전혀 아니다.
 
@@ -148,8 +148,8 @@ Token)가 사실상 표준이다. 최근 동향으로는 "JWT를 쓰되 만료 �
 
 ## 같이 보기
 
-- [Redis](./Redis.md) — 이 프로젝트가 세션을 저장하는 실제 구현체
-- [PHP](./PHP.md) — `password_verify`, `require_admin()` 등 인증 로직이 구현된 언어
+- [Redis](../Infrastructure/Redis.md) — 이 프로젝트가 세션을 저장하는 실제 구현체
+- [PHP](../WebDevelopment/PHP.md) — `password_verify`, `require_admin()` 등 인증 로직이 구현된 언어
 
 ## 참고자료
 
