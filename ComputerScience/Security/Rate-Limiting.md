@@ -161,6 +161,7 @@ Cloudflare 같은 프록시를 앞에 두게 되면, 거기서도 한 번 더 �
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 같은 Redis 인스턴스를 세션에 쓰는
   이유
 - [CORS](./CORS.md) — 같은 날 함께 손본 또 다른 방어 심층화 항목
+- [SQL Injection](./SQL-Injection.md) — 같은 스캔/프로빙 사건에서 시도됐지만 막힌 공격
 
 ## 참고자료
 

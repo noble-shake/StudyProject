@@ -71,3 +71,5 @@ ComputerScience/
 | [React](ComputerScience/WebDevelopment/React.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [React Router (HashRouter)](ComputerScience/WebDevelopment/React-Router.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [Token Storage (localStorage vs 쿠키)](ComputerScience/Security/Token-Storage.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+| [SQL Injection](ComputerScience/Security/SQL-Injection.md) | RottenNobleProject · (시니어 리뷰 + 실제 스캔 사건, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+| [프런트엔드 코드 노출 (JS 난독화)](ComputerScience/Security/Frontend-Code-Exposure.md) | RottenNobleProject · (시니어 리뷰, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |

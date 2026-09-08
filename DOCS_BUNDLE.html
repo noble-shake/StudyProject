@@ -125,7 +125,7 @@
 <div id="app">
   <aside>
     <h1>StudyProject</h1>
-    <p class="sub">Study with DevelopPrompt</p>
+    <p class="sub">Study with DevelopPrompt — 주제별 학습 문서</p>
     <input id="search" type="search" placeholder="문서 검색…" autocomplete="off">
     <nav id="nav"></nav>
     <div id="loader">
@@ -220,6 +220,8 @@ ComputerScience/
 | [React](ComputerScience/WebDevelopment/React.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [React Router (HashRouter)](ComputerScience/WebDevelopment/React-Router.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [Token Storage (localStorage vs 쿠키)](ComputerScience/Security/Token-Storage.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+| [SQL Injection](ComputerScience/Security/SQL-Injection.md) | RottenNobleProject · (시니어 리뷰 + 실제 스캔 사건, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+| [프런트엔드 코드 노출 (JS 난독화)](ComputerScience/Security/Frontend-Code-Exposure.md) | RottenNobleProject · (시니어 리뷰, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 
 </script>
 <script type="text/markdown" data-name="_TEMPLATE.md">
@@ -1736,6 +1738,192 @@ Transparent Data Encryption)**를 쓰는 경우도 많다 — MySQL/MariaDB의 I
 | 2026-09-08 | 최초 작성 | 방명록 이름 컬럼에 AES-256-GCM 암호화 도입하면서 정리 |
 
 </script>
+<script type="text/markdown" data-name="ComputerScience/Security/Frontend-Code-Exposure.md">
+# 프런트엔드 코드 노출 — F12로 다 보이는 JS, 난독화가 답이 될 수 있는가
+
+---
+
+- **카테고리**: 웹 개발, 네트워크/보안
+- **상태**: 완료
+- **기준 시점**: 2026-09-08
+- **관련 레포지토리**: `RottenNoble-Project`
+
+---
+
+## 출처
+
+2026-09-08, 사용자가 시니어 백엔드 개발자에게 코드 리뷰를 받으며 "브라우저 개발자도구(F12)를
+열면 프런트 JS 소스가 그대로 보인다"는 점을 지적받았다 — RottenNobleProject의 직접 코드 학습
+세션에서 나온 주제로, 별도 `STUDY-nn` 백로그 항목은 아니다. 같은 날 다른 세션이 PHP 백엔드
+보안 패치(`CODE_MEMO.md`의 `MEMO-WEB-09`)를 검토하며 "프런트 JS 난독화는 실효성이 없어
+보류"라고 판단한 적이 있는데, 이 문서는 그 판단이 정확히 왜 맞는지를 짚는다.
+
+## 정의
+
+브라우저에서 실행되는 모든 JavaScript/CSS/HTML은 정의상 **클라이언트에게 전달되어야 실행할 수
+있는 코드**다. 서버가 아무리 애를 써도, 브라우저가 그 코드를 읽고 실행할 수 있어야 화면이 동작
+하므로, 그 코드는 반드시 사용자의 기기에 평문(또는 평문으로 되돌릴 수 있는 형태)으로 도착한다.
+난독화(obfuscation)는 변수명을 의미 없는 문자로 바꾸고 코드 구조를 읽기 어렵게 뒤섞는 기법이지만,
+**실행 가능한 상태를 유지해야 하므로 원리적으로 되돌릴 수 있다** — 이건 암호화(encryption)와
+근본적으로 다른 성질이다.
+
+## 요약
+
+F12로 보이는 걸 막을 방법은 없다 — 난독화는 "읽기 귀찮게" 만들 뿐 "못 읽게" 만들지 못한다.
+그래서 진짜 방어선은 "프런트 코드를 숨기는 것"이 아니라 "프런트 코드에 애초에 숨길 게 없게
+만드는 것"이다. RottenNobleProject는 이미 이 원칙을 따르고 있다 — 실제로 확인해보니 프런트
+코드에는 비밀번호 해시, DB 접속정보, 서명 키 같은 진짜 비밀값이 전혀 들어있지 않다.
+
+## 상세
+
+### 왜 난독화가 "보안"이 아닌가 — security through obscurity
+
+난독화 코드의 예를 보자:
+
+```javascript
+// 원본 (Vite 개발 모드)
+function login(username, password) {
+  return fetch(`${API_BASE_URL}/auth/login`, { ... });
+}
+
+// 난독화 후 (예시 — 도구가 이런 식으로 변환한다)
+function _0x4a2f(_0x1a,_0x2b){return fetch(_0x3c[0]+"/auth/login",{...})}
+```
+
+읽기는 확실히 불편해졌다. 하지만 브라우저는 여전히 이 코드를 **그대로 실행**해야 하므로, 개발자
+도구에서 실행 중인 함수에 브레이크포인트를 걸거나, 네트워크 탭에서 실제로 어떤 요청이 나가는지
+관찰하거나, 도구(디난독화기)를 돌리면 원래 로직을 다시 읽어낼 수 있다. 이런 상태에 의존하는
+방어를 "security through obscurity"(모호함을 통한 보안)라고 부르는데, 보안 업계에서는 이걸
+**진짜 보안 계층으로 인정하지 않는다** — 시간과 노력의 장벽을 조금 높일 뿐, 뚫리지 않는다는
+보장이 전혀 없기 때문이다. Kerckhoffs의 원칙(암호 시스템은 알고리즘이 공개돼도 키만 안전하면
+안전해야 한다)이 이 분야의 오래된 기본 전제다 — "숨기면 안전하다"가 아니라 "공개돼도 안전해야
+진짜 안전한 것"이라는 사고방식이다.
+
+### 이 프로젝트의 프런트 코드에 실제로 무엇이 들어있는지 확인
+
+RottenNobleProject의 프런트 빌드 결과물(`frontend/dist/assets/*.js`)에 실제로 무엇이 박혀있는지
+점검했다:
+
+- `import.meta.env.VITE_API_BASE_URL` → `https://api.rotten-noble.com/api` — 이건 애초에
+  비밀이 아니다. 누구나 브라우저 주소창에 쳐서 확인할 수 있는 공개 API 주소다.
+- 관리자 토큰(`rottennoble_admin_token`) — 로그인에 **성공한 사용자의 브라우저**의
+  `localStorage`에만 존재한다. 프런트 **코드**(정적 JS 파일) 안에는 토큰 값 자체가 들어있지
+  않다 — 코드는 "로그인 후 토큰을 받아서 저장하는 로직"만 담고 있지, 토큰 값 자체를
+  하드코딩하고 있지 않다.
+- 관리자 비밀번호/해시 — 서버(`backend-spring`)의 환경변수(`ADMIN_PASSWORD_HASH`)에만
+  존재하고, 어떤 API 응답에도 포함되지 않는다. 프런트가 그 값을 받아본 적이 없으니, 프런트
+  코드를 아무리 읽어도 나올 수 없다.
+- DB 접속정보, Redis 접속정보 — 전부 백엔드 컨테이너의 환경변수(`.env.prod`)에만 있고, 프런트
+  빌드 산출물과는 완전히 분리된 영역이다.
+
+즉 "숨겨야 할 게 코드 안에 없다"는 게 실제로 확인되는 상태다 — 난독화가 필요 없는 게 아니라,
+난독화로 지켜야 할 대상 자체가 애초에 설계상 프런트에 안 들어가게 되어 있다.
+
+### 그럼 진짜 방어선은 어디인가
+
+이 프로젝트의 진짜 방어는 **서버 쪽 인가(authorization) 검사**다:
+
+```java
+// backend-spring — AdminSessionInterceptor.java
+if (handlerMethod.getMethodAnnotation(RequireAdmin.class) == null) {
+    return true; // 인증 불필요 엔드포인트는 통과
+}
+String token = adminSessionService.extractToken(request);
+if (!adminSessionService.isValidToken(token)) {
+    throw new UnauthorizedException(...); // 유효한 토큰 없인 여기서 막힌다
+}
+```
+
+프런트에서 "글쓰기" 버튼을 숨기거나 비활성화하는 건 **사용자 경험(UX)**을 위한 것이지 **보안**이
+아니다 — 공격자는 브라우저 UI를 거치지 않고 `curl`로 직접 `POST /api/posts`를 호출할 수 있으므로,
+"버튼이 안 보인다"는 아무 방어도 되지 못한다. 실제 방어는 그 요청이 서버에 도착했을 때
+`AdminSessionInterceptor`가 Redis에 저장된 유효한 세션인지를 검사하는 지점 하나뿐이다. 이걸
+"신뢰 경계(trust boundary)"라고 부르는데, **클라이언트(브라우저)는 절대 신뢰 경계 안쪽에 둘 수
+없다** — 사용자가 개발자도구로 무엇이든 조작할 수 있는 환경이기 때문이다.
+
+### 소스맵(source map)은 별개 문제
+
+난독화와 헷갈리기 쉬운 인접 주제로 소스맵이 있다 — 원본 코드와 빌드된 코드를 매핑해주는
+파일로, 프로덕션에 실수로 배포하면 난독화/압축 이전의 원본 코드를 그대로 복원해서 보여준다.
+이 프로젝트의 Vite 프로덕션 빌드(`npm run build`)는 `build.sourcemap` 옵션을 켜지 않아
+기본값(비활성)을 따르므로, 실제 배포 산출물(`frontend/dist/assets/`)에 `.map` 파일이 전혀
+포함되지 않는 것을 확인했다 — 이 부분은 의도치 않게라도 이미 안전한 상태다.
+
+## 비교표
+
+| 방법 | 무엇을 막는가 | 진짜 보안인가 | 이 프로젝트의 선택 |
+|---|---|---|---|
+| JS 난독화 | 코드를 "읽기 귀찮게" | 아니다(되돌릴 수 있음) | 적용 안 함 |
+| 소스맵 미배포 | 원본 코드/변수명 복원 | 부분적(방어 심층화 정도) | 이미 기본값으로 미배포 |
+| 프런트에 비밀값 자체를 안 둠 | 비밀값 유출 자체를 원천 차단 | 그렇다 | 적용 중 |
+| 서버 쪽 인가 검사 | 실제 무단 조작(쓰기·삭제 등) | 그렇다(진짜 신뢰 경계) | 적용 중 (`AdminSessionInterceptor`) |
+
+## 질문
+
+- **Q. 그럼 난독화는 아예 쓸모가 없나?**
+  A. 완전히 무의미하진 않다 — 자동화된 스크래핑 봇이 특정 패턴을 문자열 매칭으로 찾는 걸 살짝
+  방해하거나, 경쟁사가 UI 로직을 그대로 복사해가는 걸 조금 늦추는 정도의 실익은 있다. 다만 이건
+  "보안"이 아니라 "귀찮게 하기"의 영역이고, 이 프로젝트처럼 지켜야 할 진짜 비밀이 프런트에 없는
+  경우엔 들일 노력 대비 얻는 게 거의 없다고 판단했다.
+
+- **Q. Vite의 프로덕션 빌드가 하는 압축(minify)도 일종의 난독화 아닌가?**
+  A. 목적이 다르다. Minify는 변수명을 짧게, 공백을 제거해 **파일 크기를 줄이는** 최적화가
+  1차 목적이고, 읽기 어려워지는 건 부수 효과다. 난독화 전용 도구(예: `javascript-obfuscator`)는
+  파일 크기와 무관하게 **의도적으로 읽기 어렵게 만드는 것 자체**가 목적이라는 점에서 다르다.
+  RottenNobleProject는 Vite 기본 minify만 쓰고 별도 난독화 도구는 안 쓴다.
+
+- **Q. 그럼 API 키나 서드파티 서비스 키가 필요해지면 어떻게 하나?**
+  A. 그 키가 "공개돼도 되는 키"(예: 요청 출처 제한이 걸린 클라이언트 키)인지 "절대 노출되면
+  안 되는 키"(예: 결제 API의 시크릿 키)인지부터 구분해야 한다. 후자는 절대 프런트 코드에 두지
+  않고, 항상 백엔드가 대신 호출해주는 프록시 패턴을 쓴다 — 이 프로젝트가 지금 하고 있는 것과
+  같은 원칙(비밀은 서버에만)의 연장이다.
+
+## 예시 코드
+
+```jsx
+// frontend/src/App.jsx — UI에서 버튼을 숨기는 건 UX일 뿐, 보안 경계가 아니다
+{loggedIn ? (
+  <Link to="/posts/new">글쓰기</Link>
+) : (
+  <Link to="/login">로그인</Link>
+)}
+```
+
+```java
+// backend-spring — 진짜 경계는 여기, 프런트가 무엇을 보여주든 이 검사를 통과 못 하면 막힌다
+@RequireAdmin
+@PostMapping
+public ResponseEntity<ApiResponse<PostResponse>> create(@RequestBody PostRequest request) { ... }
+```
+
+## 실무
+
+실무에서도 프런트엔드 코드 자체를 "비밀"로 취급하지 않는 게 표준이다 — 대신 (1) 프런트에 비밀값을
+절대 넣지 않는 빌드 파이프라인 규칙(예: CI에서 `.env` 파일의 `VITE_`/`NEXT_PUBLIC_` 접두사가
+아닌 변수가 클라이언트 번들에 섞이면 실패시키는 린트), (2) 프로덕션 소스맵은 별도의 비공개
+오류 추적 서비스(Sentry 등)에만 업로드하고 공개 배포본에는 포함하지 않기, (3) 모든 쓰기/민감
+읽기 API에 서버 쪽 인가 검사를 두는 것이 조합된다. 난독화 도구(Terser의 mangle 옵션, 별도
+obfuscator)를 아예 안 쓰는 팀도 많고, 쓰더라도 "약간의 시간 지연" 이상의 기대는 하지 않는다.
+
+## 같이 보기
+
+- [SQL Injection](./SQL-Injection.md) — 같은 시니어 리뷰에서 함께 나온 서버 쪽 보안 주제
+- [Token Storage](./Token-Storage.md) — 관리자 토큰을 `localStorage`에 두는 선택과 그 트레이드오프
+- [CORS](./CORS.md) — 프런트-백엔드 간 신뢰 경계를 다루는 또 다른 축
+
+## 참고자료
+
+- [OWASP — Client-Side Security](https://cheatsheetseries.owasp.org/cheatsheets/Securing_Cascading_Style_Sheets_Cheat_Sheet.html)
+- [Kerckhoffs's principle (Wikipedia)](https://en.wikipedia.org/wiki/Kerckhoffs%27s_principle)
+- [Vite — Build Options (`build.sourcemap`)](https://vite.dev/config/build-options.html#build-sourcemap)
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-08 | 최초 작성 | 시니어 백엔드 리뷰에서 "F12로 JS가 노출된다"는 지적을 받고 정리 |
+
+</script>
 <script type="text/markdown" data-name="ComputerScience/Security/JWT-vs-Redis-Session.flow.md">
 # JWT vs Redis 세션 — 즉시 무효화가 필요한 순간 무엇이 갈리나
 
@@ -2289,6 +2477,7 @@ Cloudflare 같은 프록시를 앞에 두게 되면, 거기서도 한 번 더 �
 - [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) — 같은 Redis 인스턴스를 세션에 쓰는
   이유
 - [CORS](./CORS.md) — 같은 날 함께 손본 또 다른 방어 심층화 항목
+- [SQL Injection](./SQL-Injection.md) — 같은 스캔/프로빙 사건에서 시도됐지만 막힌 공격
 
 ## 참고자료
 
@@ -2300,6 +2489,177 @@ Cloudflare 같은 프록시를 앞에 두게 되면, 거기서도 한 번 더 �
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 실제 스캔/프로빙 대응으로 로그인·방명록·관리자 쓰기 엔드포인트에 rate limiting 도입 |
+
+</script>
+<script type="text/markdown" data-name="ComputerScience/Security/SQL-Injection.md">
+# SQL Injection — 쿼리에 데이터가 아니라 명령이 섞여 들어갈 때
+
+---
+
+- **카테고리**: 데이터베이스, 네트워크/보안
+- **상태**: 완료
+- **기준 시점**: 2026-09-08
+- **관련 레포지토리**: `RottenNoble-Project`
+
+---
+
+## 출처
+
+2026-09-08, 실제 배포된 `rotten-noble.com`을 대상으로 스캔/프로빙 활동이 있었고 그 안에 SQL
+인젝션 시도가 포함돼 있었다(`Rate-Limiting.md`와 같은 사건). 같은 날 사용자가 시니어 백엔드
+개발자에게 코드 리뷰를 받으면서 이 주제가 다시 짚였다 — RottenNobleProject의 직접 코드 학습
+세션에서 나온 주제로, 별도 `STUDY-nn` 백로그 항목은 아니다.
+
+## 정의
+
+SQL 인젝션은 사용자가 입력한 값이 SQL 쿼리 문자열 안에 그대로 섞여 들어가서, 원래 의도한
+"데이터"가 아니라 "명령의 일부"로 해석되게 만드는 공격이다. 서버가 사용자 입력을 데이터와 코드를
+구분하지 못한 채 문자열을 이어붙여 쿼리를 만들면, 공격자는 그 문자열 조합 규칙을 역이용해 쿼리의
+구조 자체를 바꿔버릴 수 있다.
+
+## 요약
+
+RottenNobleProject는 실제로 SQL 인젝션 시도를 받았지만 뚫리지 않았다 — PHP 시절부터 모든
+DB 접근이 이어붙이기가 아니라 **준비된 문(prepared statement)**으로 되어 있었기 때문이다. 이번
+Spring Boot 이관에서도 Spring Data JPA를 쓰면서 같은 안전성이 기본으로 유지된다. 이 문서는
+"왜 준비된 문이면 막히는가"와 "그 방어가 새 스택에서도 정말 그대로 유지되는가"를 짚는다.
+
+## 상세
+
+### 왜 문자열 이어붙이기가 위험한가
+
+가장 흔한 실수 패턴은 이런 모양이다(RottenNobleProject에는 없는, 설명을 위한 가상 코드):
+
+```php
+// 위험한 예시 — 이 프로젝트에는 이렇게 짠 곳이 없다
+$id = $_GET['id'];
+$sql = "SELECT * FROM posts WHERE id = " . $id;
+$result = $conn->query($sql);
+```
+
+`id`가 `3`처럼 정상적인 숫자면 문제없이 동작한다. 하지만 공격자가 `id`에
+`3 OR 1=1`을 넣으면 최종 쿼리는 `SELECT * FROM posts WHERE id = 3 OR 1=1`이 되고,
+`1=1`은 항상 참이라 테이블의 모든 행이 조회된다. 더 나아가 `3; DROP TABLE posts;--` 같은
+값을 넣으면(드라이버/DB 설정에 따라 다중 문장 실행이 허용되는 경우) 테이블 자체를 지워버리는
+명령까지 실행될 수 있다. 핵심은 서버가 "이건 사용자가 준 값이다"와 "이건 내가 짠 쿼리 구조다"를
+문자열 이어붙이기 시점에는 전혀 구분하지 못한다는 것이다.
+
+### 준비된 문(prepared statement)이 막는 방식
+
+RottenNobleProject의 PHP 코드는 처음부터 이렇게 짜여 있었다:
+
+```php
+// backend/get_post.php — 실제 이 프로젝트 코드
+$stmt = $conn->prepare("SELECT id, title, content, created_at FROM posts WHERE id = ?");
+$stmt->bind_param("i", $id);
+$stmt->execute();
+```
+
+`?`는 값이 들어갈 자리를 미리 표시해두는 자리표시자(placeholder)다. `prepare()` 단계에서
+DB 서버는 쿼리의 **구조**(어떤 테이블을, 어떤 조건으로)를 먼저 확정하고 실행 계획까지 세운다.
+그 다음 `bind_param`으로 넘어가는 값은 그 확정된 구조 안의 "데이터"로만 취급되지, 쿼리 문자열에
+다시 끼워 넣어져 재해석되는 게 아니다. `$id`에 `3 OR 1=1`이라는 문자열이 통째로 들어와도, DB는
+그걸 "id 컬럼과 비교할 문자열 값"으로만 보지 새로운 쿼리 조건으로 보지 않는다 — 애초에 구조와
+데이터가 서로 다른 채널로 전달되기 때문에 뒤섞일 방법이 없다.
+
+### Spring Boot(JPA)에서는 왜 기본으로 안전한가
+
+Spring Data JPA의 리포지토리 메서드는 내부적으로 Hibernate가 생성하는 파라미터 바인딩 쿼리를
+쓴다:
+
+```java
+// backend-spring — PostRepository.java
+List<Post> findAllByOrderByCreatedAtDesc();
+
+// PostService.java에서
+repository.findById(id) // id는 파라미터로 바인딩되지, 문자열로 이어붙여지지 않는다
+```
+
+메서드 이름을 분석해서 쿼리를 만드는 이 방식(Query Method)은 애초에 사용자가 SQL 문자열
+자체에 손댈 여지를 주지 않는다 — 이어붙일 문자열 자체가 코드 어디에도 없다. 위험은 오히려
+"쿼리 메서드로 표현이 안 돼서 직접 JPQL/네이티브 쿼리를 문자열로 짤 때" 생긴다:
+
+```java
+// 위험한 예시 — 이 프로젝트에는 없지만, JPA를 쓴다고 무조건 안전한 건 아니라는 걸 보여주는 코드
+String jpql = "SELECT p FROM Post p WHERE p.title = '" + userInput + "'"; // 여전히 이어붙이기
+entityManager.createQuery(jpql).getResultList();
+```
+
+즉 "ORM/프레임워크를 쓰면 자동으로 안전하다"가 아니라 "쿼리 메서드나 `@Param` 바인딩처럼
+자리표시자를 쓰는 경로로만 다니면 안전하다"가 더 정확한 문장이다. RottenNobleProject는 현재
+전부 쿼리 메서드로 처리되어 이 위험 경로 자체가 코드에 없다.
+
+## 비교표
+
+| 방식 | 안전한가 | 이 프로젝트에서 |
+|---|---|---|
+| 문자열 이어붙이기 (`"... WHERE id = " . $id`) | 안전하지 않음 | 사용된 적 없음 |
+| 준비된 문 + 자리표시자 (`bind_param`) | 안전함 | PHP 시절 전 구간 사용 |
+| JPA 쿼리 메서드 (`findById` 등) | 안전함 | Spring Boot 전환 후 전 구간 사용 |
+| JPQL/네이티브 쿼리를 문자열로 직접 조립 | 안전하지 않음(자리표시자 안 쓰면) | 사용된 적 없음 |
+
+## 질문
+
+- **Q. 이번에 실제로 뚫렸나?**
+  A. 아니다. 스캔/프로빙 로그에서 인젝션 시도 패턴이 확인됐지만, 전체 DB 접근 엔드포인트를
+  재감사한 결과 문자열 이어붙이기 쿼리가 하나도 없어 시도 자체가 그대로 실패했다. 그날 실제로
+  드러난 진짜 갭은 인젝션이 아니라 로그인의 rate limit 부재였다(`Rate-Limiting.md`).
+
+- **Q. Prepared statement만 쓰면 DB 관련 보안은 다 해결되나?**
+  A. 인젝션 한정으로는 그렇다. 다만 이 프로젝트가 별도로 겪은 `Web/08_PITFALLS.md` §7 문제
+  (Docker 컨테이너가 브릿지 네트워크라 `root@localhost` 계정으로 거부당한 것)를 해결하며 도입한
+  "이 DB 하나에만 권한을 가진 전용 계정"도 같은 방향의 방어다 — 인젝션이 뚫리더라도 그 계정이
+  볼 수 있는 범위 자체를 최소화하는 최소 권한 원칙(principle of least privilege)이라, 인젝션
+  방어와는 층이 다르지만 같이 짚어둘 가치가 있다.
+
+- **Q. NoSQL(Redis)도 인젝션에서 자유로운가?**
+  A. Redis는 명령어와 인자가 프로토콜 수준에서 분리되어 있어(RESP 프로토콜) 이 프로젝트처럼
+  `SET key value EX seconds` 식으로 인자를 배열로 넘기는 한 SQL 인젝션과 같은 문제는 생기지
+  않는다. 다만 "NoSQL 인젝션"이라는 별도 범주(예: 사용자 입력을 명령어 자체로 실행하는 `EVAL`
+  스크립트에 그대로 넣는 경우)는 존재한다 — 이 프로젝트는 그런 경로를 쓰지 않는다.
+
+## 예시 코드
+
+```php
+// 이 프로젝트가 실제로 쓰는 방식 (backend/create_post.php)
+$stmt = $conn->prepare("INSERT INTO posts (title, content) VALUES (?, ?)");
+$stmt->bind_param("ss", $title, $content);
+$stmt->execute();
+```
+
+```java
+// Spring Boot 쪽 동일 지점 (PostService.java)
+Post post = new Post();
+post.setTitle(title);
+post.setContent(content);
+repository.save(post); // Hibernate가 파라미터 바인딩된 INSERT를 생성
+```
+
+## 실무
+
+실무에서는 준비된 문/ORM을 기본으로 쓰는 것 외에, 방어를 여러 겹으로 둔다 — 입력값 검증(길이·
+형식 제한, 이 프로젝트도 제목 255자·내용 필수 같은 검증을 이미 하고 있다), WAF(Web Application
+Firewall)로 알려진 인젝션 패턴을 요청 단계에서 미리 차단, DB 계정의 최소 권한 부여, 그리고
+정기적인 의존성/쿼리 감사가 함께 간다. "프레임워크가 알아서 막아준다"고 방심하지 않고, 직접
+문자열 쿼리를 짜야 하는 예외 상황(복잡한 동적 정렬, 리포팅 쿼리 등)에서 특히 주의하는 게
+실무에서 자주 강조되는 지점이다.
+
+## 같이 보기
+
+- [Rate Limiting](./Rate-Limiting.md) — 같은 스캔/프로빙 사건에서 실제로 뚫렸던 갭
+- [Frontend Code Exposure](./Frontend-Code-Exposure.md) — 같은 날 시니어 리뷰에서 나온 또 다른
+  보안 주제
+
+## 참고자료
+
+- [OWASP — SQL Injection](https://owasp.org/www-community/attacks/SQL_Injection)
+- [OWASP Cheat Sheet — Query Parameterization](https://cheatsheetseries.owasp.org/cheatsheets/Query_Parameterization_Cheat_Sheet.html)
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-08 | 최초 작성 | 실제 스캔/프로빙 사건 + 시니어 백엔드 리뷰에서 나온 주제 정리 |
 
 </script>
 <script type="text/markdown" data-name="ComputerScience/Security/Token-Storage.md">
