@@ -22,4 +22,4 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 | 주제 | 출처(프로젝트 · STUDY-nn) | 상태 |
 |---|---|---|
-| [RottenNobleProject 아키텍처 이해하기](RottenNobleProject-Architecture.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | 학습 중 — 환경/스택 + 아키텍처 계층 끝남 |
+| [RottenNobleProject 아키텍처 이해하기](RottenNobleProject-Architecture.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | 학습 중 — 코드 구조는 다 훑음, `STUDY-01` 본편만 남음 |

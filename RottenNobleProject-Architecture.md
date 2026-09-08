@@ -1,7 +1,7 @@
 # RottenNobleProject 아키텍처 이해하기
 
-> 진행 상태: **학습 중** — 환경(스택) + 아키텍처 계층 섹션 끝남. 다음 세션은 "프런트-백엔드 통신"부터
-> 이어가면 된다.
+> 진행 상태: **학습 중** — 환경(스택) + 아키텍처 계층 + 프런트-백엔드 통신/인증 흐름 섹션 끝남.
+> 코드 구조 자체는 다 훑었고, 남은 건 `STUDY-01`(JWT vs Redis 세션 비교) 본편뿐.
 
 ## 출처
 
@@ -75,16 +75,82 @@ Next.js는 PHP 백엔드를 따로 두는 이 프로젝트 구조와 부딪혀 �
 비표준 설계는 `lib/redis_client.php`를 직접 구현한 부분인데, 이건 "몰라서 직접 짠" 게 아니라
 **세 언어(PHP/Node/C++)가 같은 Redis를 같은 방식으로 말해야 한다**는 명확한 이유가 있는 선택이었다.
 
-## 다음에 볼 것 (미완료)
+## 배운 것 (2026-09-08, 3회차 — 프런트-백엔드 통신 & 인증 흐름)
 
-- 프런트-백엔드 통신 — API 봉투 형식과 CORS는 이번 회차에서 스쳐봤지만, 실패 케이스(네트워크 에러,
-  401 흐름, OPTIONS 프리플라이트 실제 동작)는 아직 안 봄
-- 인증(로그인) 흐름 — Redis 세션 토큰이 로그인부터 로그아웃까지 실제로 어떻게 흐르는지, `login.php`/
-  `logout.php` 내부 (`STUDY-01`과 자연스럽게 이어짐)
+### 요청/응답 봉투
+
+성공 `{status:'ok', data}` / 실패 `{status:'error', message}` — `frontend/src/api/posts.js`의
+`request()`가 이 봉투를 까서 `status !== 'ok'`면 `Error(message)`를 던진다. 단, `auth.js`의
+`login()`/`logout()`은 이 공통 `request()`를 안 쓰고 `fetch`를 직접 호출한다 — 로그인은 아직 토큰이
+없어서 `authHeaders()`를 붙일 필요가 없는 자연스러운 예외지만, 봉투를 까는 로직(`body.status !== 'ok'`
+검사)은 `auth.js`에도 똑같이 손으로 다시 써 있다 — 완전히 같은 코드가 두 파일에 한 번씩 더 반복됨.
+
+### CORS 실동작 — 문서(MEMO-WEB-02)와 코드가 갈라진 지점
+
+`response.php`의 `allow_cors($methods)`는 엔드포인트 종류와 무관하게 항상
+`Access-Control-Allow-Origin: *`를 붙이고, `OPTIONS` 프리플라이트는 204로 즉시 종료한다. 그런데
+`CODE_MEMO.md`의 `MEMO-WEB-02`는 명시적으로 이렇게 적어뒀다:
+
+> "관리자 글쓰기/수정 같은 **인증 붙는 엔드포인트를 추가할 때 이 와일드카드를 그대로 복사하면 안 된다**
+> — 그때는 쿠키/토큰이 오가므로 명시적 origin 허용목록으로 바꿔야 한다."
+
+실제로는 `login.php`/`logout.php`/`create_post.php`/`update_post.php`/`delete_post.php` 전부
+`allow_cors()`를 공유 함수 그대로 호출해서, 경고했던 그 와일드카드를 그대로 쓰고 있다 — 문서화된
+결정과 실제 구현이 어긋난 지점.
+
+**왜 지금 당장 위험하지 않은가**: 이 프로젝트는 쿠키가 아니라 `Authorization: Bearer {token}` 헤더로
+인증한다. 브라우저는 쿠키와 달리 커스텀 헤더를 다른 origin 요청에 자동으로 붙여주지 않으므로,
+`evil.com`의 스크립트가 `rotten-noble.com`에 요청을 보내도 토큰을 모르면(다른 origin의
+`localStorage`는 읽을 수 없음) 인증을 통과시킬 방법이 없다 — 쿠키 기반이었다면 뚫렸을 클래식 CSRF가
+여기선 토큰 저장 방식 자체 때문에 막혀 있다. 그래도 `MEMO-WEB-02`가 스스로 남긴 경고가 안 지켜진
+채로 남아있다는 사실 자체는 기록해둘 만하다(고치자는 게 아니라, 문서-코드 드리프트 사례로).
+
+### 인증 흐름 (로그인 → 요청 → 로그아웃)
+
+1. `login.php` — `username`/`password`를 `config.local.php`의 `admin_user`/`admin_password_hash`와
+   비교(`password_verify`, bcrypt류). 성공하면 `bin2hex(random_bytes(32))`로 32바이트 랜덤 토큰을
+   만들고 Redis에 `SET admin_session:{token} 'admin' EX 86400`(24시간) 저장 후 `{token}` 반환.
+2. 프런트 `auth.js`가 토큰을 `localStorage`(`rotten_admin_token`)에 저장.
+3. 쓰기 요청(`createPost`/`updatePost`/`deletePost`)마다 `authHeaders()`가
+   `Authorization: Bearer {token}`을 주입.
+4. `auth.php`의 `require_admin()`이 헤더를 파싱해 Redis에서 `admin_session:{token}`을 `GET` — 값이
+   정확히 `'admin'`이 아니면(만료·위조 포함) `401`로 즉시 종료.
+5. `logout.php` — Redis에서 `DEL admin_session:{token}`. Redis 호출이 실패해도 조용히 넘어간다(주석:
+   "클라이언트가 토큰을 버리면 사실상 끝나므로") — 로그아웃 실패를 사용자에게 보여줄 필요가 없다는
+   판단.
+6. 갱신(refresh) 로직은 없다 — 24시간 TTL이 지나면 Redis가 키를 자동 만료시키고, 다음 보호된 요청이
+   그냥 401을 맞는다. 프런트는 이걸 미리 감지하지 않고, 실제 요청이 실패해야 알게 된다.
+
+### UI 에러 처리 패턴
+
+`Login.jsx`·`PostEditor.jsx` 둘 다 같은 모양이다 — 로컬 `error`/`submitting` state, `.catch(err =>
+setError(err.message))`, 전역 에러 바운더리/토스트 없이 각 페이지가 자기 에러를 직접 그림. 로그인
+성공 시엔 라우터 `navigate()` 대신 `window.location.href = '/'`로 **전체 새로고침**을 의도적으로
+쓰는데, 주석에 이유가 있다 — `Nav`의 로그인 상태는 마운트 시점에만 읽으므로 전역 상태 라이브러리 없이
+Nav를 확실히 최신화하려면 새로고침이 제일 간단하다는 판단(이 규모에 Redux/Context 도입은 과함).
+
+### 결론 (3회차 한정)
+
+인증 방식이 쿠키가 아니라 헤더 토큰이라는 선택 하나가, CORS 와일드카드가 남아있어도 클래식 CSRF는
+막아주는 결과로 이어졌다 — 다만 이건 설계 당시 의도적으로 노린 방어라기보다 결과적으로 그렇게 된
+쪽에 가까워 보인다(`MEMO-WEB-04`엔 Redis opaque 토큰을 고른 이유로 "즉시 무효화 가능"만 적혀있고
+CORS와의 상호작용은 언급이 없음). `STUDY-01`(JWT vs 여기 Redis 세션)을 실제로 공부할 때, Redis TTL
+24시간이 JWT의 `exp` 클레임과 같은 역할을 한다는 점 + "즉시 무효화"가 JWT엔 기본으로 없다는 트레이드
+오프를 이 코드가 실물로 보여준다는 게 좋은 출발점이 될 것 같다.
+
+## 다음에 볼 것
+
+- `STUDY-01` 본편 — 여기서 실제로 본 Redis 세션 구현을 놓고 JWT였다면 무엇이 달라졌을지 비교 (같은
+  `Study.md`의 STUDY-01 항목을 "학습 중"으로 바꾸고 시작)
+- (선택, 이 학습 세션 범위 밖) `MEMO-WEB-02` 와일드카드 갭을 실제로 허용목록으로 바꿀지는 별도 결정
+  사항으로 남겨둠 — 지금 당장 손대지 않음
 
 ## 참고자료
 
 - `DevelopPrompt/CurrentProject/_RottenNobleProject/04_CURRENT_PROJECT.md`
+- `DevelopPrompt/CurrentProject/_RottenNobleProject/CODE_MEMO.md` (`MEMO-WEB-02`, `MEMO-WEB-04`)
 - `DevelopPrompt/Web/08_PITFALLS.md` §2 (CRA Jest exports map 문제)
 - `RottenNoble-Project`(`develop` 브랜치) — `backend/response.php`, `backend/db.php`, `backend/auth.php`,
-  `backend/lib/redis_client.php`, `frontend/src/App.js`, `frontend/src/api/*.js`
+  `backend/login.php`, `backend/logout.php`, `backend/create_post.php`, `backend/lib/redis_client.php`,
+  `frontend/src/App.js`, `frontend/src/api/*.js`, `frontend/src/pages/Login/Login.jsx`,
+  `frontend/src/pages/PostEditor/PostEditor.jsx`
