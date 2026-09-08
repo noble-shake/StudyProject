@@ -13,6 +13,13 @@
 > 조망하는 색인 겸 아키텍처 요약**이다. 각 기술의 자세한 설명은 아래 표에서 링크된 개별 문서를
 > 본다. 코드를 순서대로 훑어간 세션 기록 자체는
 > [`RottenNobleProject-Architecture.md`](./RottenNobleProject-Architecture.md)에 남아있다.
+>
+> **2026-09-08 진행 중인 전환**: 시니어 백엔드 리뷰 이후 백엔드를 PHP → Java Spring Boot로
+> 전면 교체하기로 결정, `server/` 모듈을 새로 추가하는 중이다(strangler-fig 방식 — `backend/`는
+> 검증 전까지 그대로 둠, PR https://github.com/noble-shake/RottenNoble-Project/pull/3). 프런트도
+> 빌드 도구를 CRA에서 Vite로 옮길 예정(아직 시작 전). 아래 "기술 스택"/"특이할 점"은 PHP가 실제
+> 운영되던 시점 기준 서술이 대부분 남아있다 — [Spring Boot](../WebDevelopment/Spring-Boot.md)에
+> 전환 배경과 세부 내용을 정리했다.
 
 ## 출처
 
@@ -64,7 +71,7 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 
 | 계층 | 기술 | 상세 문서 |
 |---|---|---|
-| 백엔드 언어 | PHP 8.x, 프레임워크 없음 | [PHP](../WebDevelopment/PHP.md) |
+| 백엔드 언어 | PHP 8.x, 프레임워크 없음 → **Java Spring Boot로 전환 중(2026-09-08)** | [PHP](../WebDevelopment/PHP.md), [Spring Boot](../WebDevelopment/Spring-Boot.md) |
 | 관계형 DB | MariaDB 10 (`mysqli`) | [MariaDB](../Database/MariaDB.md) |
 | 세션 저장소 | Redis (RESP 프로토콜 직접 구현) | [Redis](../Infrastructure/Redis.md) |
 | 인증 방식 | Opaque 토큰 + Redis 세션 (JWT 아님) | [JWT vs Redis 세션](../Security/JWT-vs-Redis-Session.md) |
@@ -117,6 +124,7 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
   [Rate Limiting](../Security/Rate-Limiting.md) · [저장 데이터 암호화](../Security/Encryption-at-Rest.md) — 인증/보안
 - [REST API 설계](../WebDevelopment/REST-API-Design.md) — 백엔드-프런트 통신 규약
 - [React](../WebDevelopment/React.md) · [React Router](../WebDevelopment/React-Router.md) · [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) — 프런트엔드
+- [Spring Boot](../WebDevelopment/Spring-Boot.md) — 진행 중인 백엔드 전환
 - [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — 인프라
 
 ## 참고자료
@@ -131,3 +139,4 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 |---|---|---|
 | 2026-09-08 | 최초 작성 | 개별 주제 문서 12개를 다 쓴 뒤 전체 그림을 한 문서로 종합 |
 | 2026-09-08 | CORS/rate limiting/암호화 반영 | 실제 스캔/프로빙 대응으로 추가된 방어 심층화를 기술 스택 표·특이할 점에 갱신 |
+| 2026-09-08 | PHP → Spring Boot 전환 시작 안내 추가 | 시니어 리뷰 이후 백엔드 전면 교체 결정 — `server/` 모듈 신설(PR #3), 세부 내용은 `Spring-Boot.md`로 분리 |

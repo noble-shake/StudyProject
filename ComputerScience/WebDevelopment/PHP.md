@@ -9,6 +9,11 @@
 
 ---
 
+> **2026-09-08 갱신**: `RottenNoble-Project`의 실제 백엔드는 이 문서 작성 이후 Java Spring
+> Boot로 교체됐다([Spring Boot](./Spring-Boot.md) 참고) — 이 문서를 지우지 않고 남겨둔 이유는
+> "그때 왜 PHP를 선택했는지"와 "프레임워크 없이 짜보면 뭘 배우는지"가 스택이 바뀌어도 여전히
+> 유효한 학습 내용이기 때문이다. 아래 본문은 PHP 백엔드가 실제로 운영되던 시점 기준으로 남겨둔다.
+
 ## 출처
 
 `RottenNobleProject` — `STUDY-nn` 백로그 항목이 아니라, `RottenNobleProject-Architecture.md` 코드
@@ -166,3 +171,4 @@ send_json($posts);
 | 날짜 | 무엇을 바꿨나 | 계기 |
 |---|---|---|
 | 2026-09-08 | 최초 작성 | `RottenNobleProject-Architecture.md` 1~3회차 코드 학습 중 PHP 자체를 별도 주제 문서로 분리 |
+| 2026-09-08 | "대체됨" 안내 추가 | 백엔드가 Java Spring Boot로 전면 교체됨 — 문서는 역사적 기록으로 유지 |
