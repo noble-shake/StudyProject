@@ -46,7 +46,7 @@ ComputerScience/
 ├── Graphics/            렌더링/포스트 프로세싱 일반 이론(톤 매핑 커브, TAA 등), 특정 엔진에 종속되지 않는 개념
 ├── URP_PostProcessing/  Unity URP `Post Process Data`에 실제로 참조된 개별 셰이더(LUT PS 등) 전용
 ├── Database/            MariaDB, mysqli, SQL
-├── Infrastructure/      Redis, 배포, 자체 호스팅
+├── Infrastructure/      Redis, 배포, 자체 호스팅, GitHub Actions
 ├── Network/             CORS, HTTPS, HTTP 프로토콜 일반
 ├── Security/            인증·인가, 해싱, 토큰 저장
 └── WebDevelopment/      PHP, React, 라우팅, API 설계
@@ -70,6 +70,7 @@ ComputerScience/
 | [REST API 설계 (응답 봉투)](ComputerScience/WebDevelopment/REST-API-Design.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [HTTPS, Let's Encrypt, Mixed Content](ComputerScience/Network/HTTPS-and-Mixed-Content.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [자체 호스팅(NAS) vs 클라우드](ComputerScience/Infrastructure/Self-Hosting-vs-Cloud.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+| [GitHub Actions (self-hosted 러너로 배포 자동화)](ComputerScience/Infrastructure/GitHub-Actions.md) | RottenNobleProject · (직접 구축, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [React](ComputerScience/WebDevelopment/React.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [React Router (HashRouter)](ComputerScience/WebDevelopment/React-Router.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [Token Storage (localStorage vs 쿠키)](ComputerScience/Security/Token-Storage.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
