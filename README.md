@@ -21,7 +21,7 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 - **카테고리별 폴더 트리로 정리한다** — `ComputerScience/{분야}/{주제}.md` (예:
   `ComputerScience/Network/CORS.md`). 분야 폴더는 필요에 따라 늘어난다(현재:
-  `WebDevelopment`, `Database`, `Infrastructure`, `Security`, `Network`, `Architecture`).
+  `WebDevelopment`, `Database`, `Infrastructure`, `Security`, `Network`, `Architecture`, `Graphics`).
   주제 하나가 여러 카테고리에 걸치면(문서 상단 메타의 "카테고리" 필드는 1~3개 가능) 가장 주된
   분야의 폴더에 두고, 메타 필드로 나머지를 표시한다 — 폴더는 하나, 태그는 여러 개.
 - 새 주제를 시작할 때 [`_TEMPLATE.md`](_TEMPLATE.md)를 복사해서, 해당 카테고리 폴더 안에 쓴다.
@@ -43,6 +43,7 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 ```
 ComputerScience/
 ├── Architecture/       저장소 개요, 코드 직접 학습 세션 기록
+├── Graphics/           렌더링/포스트 프로세싱(톤 매핑, TAA 등), 특정 프로젝트에 종속되지 않는 그래픽스 이론
 ├── Database/           MariaDB, mysqli, SQL
 ├── Infrastructure/     Redis, 배포, 자체 호스팅
 ├── Network/            CORS, HTTPS, HTTP 프로토콜 일반
@@ -73,3 +74,14 @@ ComputerScience/
 | [Token Storage (localStorage vs 쿠키)](ComputerScience/Security/Token-Storage.md) | RottenNobleProject · (직접 코드 학습, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [SQL Injection](ComputerScience/Security/SQL-Injection.md) | RottenNobleProject · (시니어 리뷰 + 실제 스캔 사건, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [프런트엔드 코드 노출 (JS 난독화)](ComputerScience/Security/Frontend-Code-Exposure.md) | RottenNobleProject · (시니어 리뷰, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
+
+### 그래픽스 (특정 프로젝트 종속 없음)
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| [톤 매핑(Tone Mapping)](ComputerScience/Graphics/Tone-Mapping.md) | 순수 학습 호기심 + 컴투스 TA실 발표 영상 | `-` | 완료 |
+| [LUT PS](ComputerScience/Graphics/LUT-PS.md) | Unity URP `Post Process Data` 디버깅 중 발견 | `-` | 완료 |
+| [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
+| [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
+| [커스텀 TAA](ComputerScience/Graphics/Custom-TAA.md) | 컴투스 TA실 발표 영상(세션 하이라이트) | `-` | 완료 |
+| Uber PS 및 Post Process Data의 나머지 셰이더 | `Post Process Data` 디버깅 중 발견, LUT PS와 함께 확인됨 | `-` | 학습 전 (추후 예정) |
