@@ -63,7 +63,7 @@ URP의 Volume 프로파일에서 "Tonemapping" 오버라이드를 켜면 `None`/
 1. **LDR 그레이딩 경로**: `LutBuilderLdr` 셰이더가 색 보정(화이트 밸런스, 커브, 채널 믹서 등)과
    톤 매핑 곡선을 한 번에 계산해서 작은 3D LUT(Look-Up Table) 텍스처 하나에 구워 넣고,
    `UberPost` 셰이더가 화면 전체 픽셀마다 이 LUT를 한 번씩 샘플링해서 최종 색을 얻는다 — 자세한
-   원리는 [LUT PS](./LUT-PS.md) 참고.
+   원리는 [LUT PS](../URP_PostProcessing/LUT-PS.md) 참고.
 2. **HDR 출력 경로**(디스플레이 자체가 HDR을 지원하는 경우): `LutBuilderHdr`가 대신 쓰이며, LUT의
    유효 범위를 HDR 값까지 확장해서 굽는다.
 
@@ -138,16 +138,15 @@ float3 ACESFilmApprox(float3 x)
 실무에서는 "어떤 곡선을 쓰느냐"보다 "그 곡선을 얼마나 싸게 적용하느냐"가 더 큰 엔지니어링
 과제인 경우가 많다. Unity URP를 포함해 대부분의 실시간 렌더러는 톤 매핑 수식을 픽셀마다 직접
 계산하지 않고, 작은 3D LUT 텍스처에 미리 구워 넣은 뒤 그 LUT를 샘플링하는 방식을 쓴다 —
-[LUT PS](./LUT-PS.md)에서 이 방식 자체를 다룬다. 최근 업계 동향으로는 Blender/Unreal이 채택하며
-주목받은 **AgX** 톤매퍼가 "고채도 색이 뭉개지지 않는다"는 평가를 받으며 확산 중이고, Unity
-진영에서도 커스텀 셰이더로 이식하는 사례가 늘고 있다.
+[LUT PS](../URP_PostProcessing/LUT-PS.md)에서 이 방식 자체를 다룬다. 최근 업계 동향으로는
+Blender/Unreal이 채택하며 주목받은 **AgX** 톤매퍼가 "고채도 색이 뭉개지지 않는다"는 평가를
+받으며 확산 중이고, Unity 진영에서도 커스텀 셰이더로 이식하는 사례가 늘고 있다.
 
 ## 같이 보기
 
-- [LUT PS](./LUT-PS.md) — 이 톤 매핑 곡선이 실제로 구워져 저장되는 셰이더
-- (추후 예정) Uber PS 및 URP Post Process Data에 포함된 다른 셰이더들 — Post Process Data 에셋을
-  프레임 디버거로 열어보면 LUT PS 외에도 Bloom, Depth Of Field, Uber Post 등 여러 셰이더가
-  참조돼 있다. 이번엔 LUT PS만 먼저 정리했고, 나머지는 각자 별도 문서로 다룰 예정이다.
+- [URP_PostProcessing 개요](../URP_PostProcessing/URP_PostProcessing.md) — Post Process Data에
+  숨어있는 개별 셰이더들을 모아 정리한 카테고리
+- [LUT PS](../URP_PostProcessing/LUT-PS.md) — 이 톤 매핑 곡선이 실제로 구워져 저장되는 셰이더
 
 ## 참고자료
 

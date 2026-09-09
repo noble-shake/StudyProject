@@ -42,13 +42,14 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 ```
 ComputerScience/
-├── Architecture/       저장소 개요, 코드 직접 학습 세션 기록
-├── Graphics/           렌더링/포스트 프로세싱(톤 매핑, TAA 등), 특정 프로젝트에 종속되지 않는 그래픽스 이론
-├── Database/           MariaDB, mysqli, SQL
-├── Infrastructure/     Redis, 배포, 자체 호스팅
-├── Network/            CORS, HTTPS, HTTP 프로토콜 일반
-├── Security/           인증·인가, 해싱, 토큰 저장
-└── WebDevelopment/     PHP, React, 라우팅, API 설계
+├── Architecture/        저장소 개요, 코드 직접 학습 세션 기록
+├── Graphics/            렌더링/포스트 프로세싱 일반 이론(톤 매핑 커브, TAA 등), 특정 엔진에 종속되지 않는 개념
+├── URP_PostProcessing/  Unity URP `Post Process Data`에 실제로 참조된 개별 셰이더(LUT PS 등) 전용
+├── Database/            MariaDB, mysqli, SQL
+├── Infrastructure/      Redis, 배포, 자체 호스팅
+├── Network/             CORS, HTTPS, HTTP 프로토콜 일반
+├── Security/            인증·인가, 해싱, 토큰 저장
+└── WebDevelopment/      PHP, React, 라우팅, API 설계
 ```
 
 ## 항목 인덱스
@@ -80,8 +81,17 @@ ComputerScience/
 | 주제 | 출처 | 관련 레포지토리 | 상태 |
 |---|---|---|---|
 | [톤 매핑(Tone Mapping)](ComputerScience/Graphics/Tone-Mapping.md) | 순수 학습 호기심 + 컴투스 TA실 발표 영상 | `-` | 완료 |
-| [LUT PS](ComputerScience/Graphics/LUT-PS.md) | Unity URP `Post Process Data` 디버깅 중 발견 | `-` | 완료 |
 | [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [커스텀 TAA](ComputerScience/Graphics/Custom-TAA.md) | 컴투스 TA실 발표 영상(세션 하이라이트) | `-` | 완료 |
-| Uber PS 및 Post Process Data의 나머지 셰이더 | `Post Process Data` 디버깅 중 발견, LUT PS와 함께 확인됨 | `-` | 학습 전 (추후 예정) |
+
+### URP_PostProcessing (`Post Process Data`에 실제로 참조된 개별 셰이더)
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| **[URP_PostProcessing 개요 (전체 파이프라인/셰이더 지도)](ComputerScience/URP_PostProcessing/URP_PostProcessing.md)** | LUT PS 정리 중 카테고리 전체 조망 필요성 인식 | `-` | 학습 중 — 개별 셰이더 문서가 늘 때마다 갱신 |
+| [LUT PS (Lut Builder Ldr/Hdr PS)](ComputerScience/URP_PostProcessing/LUT-PS.md) | Unity URP `Post Process Data` 디버깅 중 발견 | `-` | 완료 |
+| Uber Post PS | `Post Process Data` 디버깅 중 발견, LUT PS와 함께 확인됨 | `-` | 학습 전 (추후 예정) |
+| Bloom 관련 패스 | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 — 최적화 사례는 위 [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) 참고 |
+| Depth Of Field 관련 패스 | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 — 최적화 사례는 위 [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) 참고 |
+| Final Post PS | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 (추후 예정) |

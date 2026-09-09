@@ -191,13 +191,14 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 ```
 ComputerScience/
-├── Architecture/       저장소 개요, 코드 직접 학습 세션 기록
-├── Graphics/           렌더링/포스트 프로세싱(톤 매핑, TAA 등), 특정 프로젝트에 종속되지 않는 그래픽스 이론
-├── Database/           MariaDB, mysqli, SQL
-├── Infrastructure/     Redis, 배포, 자체 호스팅
-├── Network/            CORS, HTTPS, HTTP 프로토콜 일반
-├── Security/           인증·인가, 해싱, 토큰 저장
-└── WebDevelopment/     PHP, React, 라우팅, API 설계
+├── Architecture/        저장소 개요, 코드 직접 학습 세션 기록
+├── Graphics/            렌더링/포스트 프로세싱 일반 이론(톤 매핑 커브, TAA 등), 특정 엔진에 종속되지 않는 개념
+├── URP_PostProcessing/  Unity URP `Post Process Data`에 실제로 참조된 개별 셰이더(LUT PS 등) 전용
+├── Database/            MariaDB, mysqli, SQL
+├── Infrastructure/      Redis, 배포, 자체 호스팅
+├── Network/             CORS, HTTPS, HTTP 프로토콜 일반
+├── Security/            인증·인가, 해싱, 토큰 저장
+└── WebDevelopment/      PHP, React, 라우팅, API 설계
 ```
 
 ## 항목 인덱스
@@ -229,11 +230,20 @@ ComputerScience/
 | 주제 | 출처 | 관련 레포지토리 | 상태 |
 |---|---|---|---|
 | [톤 매핑(Tone Mapping)](ComputerScience/Graphics/Tone-Mapping.md) | 순수 학습 호기심 + 컴투스 TA실 발표 영상 | `-` | 완료 |
-| [LUT PS](ComputerScience/Graphics/LUT-PS.md) | Unity URP `Post Process Data` 디버깅 중 발견 | `-` | 완료 |
 | [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [커스텀 TAA](ComputerScience/Graphics/Custom-TAA.md) | 컴투스 TA실 발표 영상(세션 하이라이트) | `-` | 완료 |
-| Uber PS 및 Post Process Data의 나머지 셰이더 | `Post Process Data` 디버깅 중 발견, LUT PS와 함께 확인됨 | `-` | 학습 전 (추후 예정) |
+
+### URP_PostProcessing (`Post Process Data`에 실제로 참조된 개별 셰이더)
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| **[URP_PostProcessing 개요 (전체 파이프라인/셰이더 지도)](ComputerScience/URP_PostProcessing/URP_PostProcessing.md)** | LUT PS 정리 중 카테고리 전체 조망 필요성 인식 | `-` | 학습 중 — 개별 셰이더 문서가 늘 때마다 갱신 |
+| [LUT PS (Lut Builder Ldr/Hdr PS)](ComputerScience/URP_PostProcessing/LUT-PS.md) | Unity URP `Post Process Data` 디버깅 중 발견 | `-` | 완료 |
+| Uber Post PS | `Post Process Data` 디버깅 중 발견, LUT PS와 함께 확인됨 | `-` | 학습 전 (추후 예정) |
+| Bloom 관련 패스 | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 — 최적화 사례는 위 [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) 참고 |
+| Depth Of Field 관련 패스 | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 — 최적화 사례는 위 [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) 참고 |
+| Final Post PS | `Post Process Data` 디버깅 중 발견 | `-` | 학습 전 (추후 예정) |
 
 </script>
 <script type="text/markdown" data-name="_TEMPLATE.md">
@@ -1168,176 +1178,6 @@ UniversalRenderPipelineInternalUtils.ClearCameraMotionVectorMaterial(); // 리�
 | 2026-09-09 | 최초 작성 | 컴투스 TA실 발표 영상의 커스텀 TAA 파트(세션 하이라이트)를 정리 |
 
 </script>
-<script type="text/markdown" data-name="ComputerScience/Graphics/LUT-PS.md">
-# LUT PS — 색 보정과 톤 매핑을 미리 구워두는 셰이더
-
----
-
-- **카테고리**: 그래픽스, 렌더링
-- **상태**: 완료
-- **기준 시점**: 2026-09-09, Unity 6 URP 기준
-- **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
-
----
-
-## 출처
-
-[톤 매핑](./Tone-Mapping.md)을 정리하던 중, Unity URP의 `Post Process Data` 에셋을 프레임
-디버거로 열어봤을 때 **`Lut Builder Ldr PS`**·**`Lut Builder Hdr PS`**(`UberPost` 등 여러
-내부 셰이더와 함께)가 참조돼 있는 걸 발견하고, 그중 톤 매핑과 가장 직접적으로 연결된 이 둘부터
-별도 문서로 정리한 것. 나머지 셰이더(Uber PS 등)는 추후 별도 문서로 다룰 예정.
-
-## 정의
-
-**LUT(Look-Up Table)**은 "미리 계산해둔 값들을 담은 표"를 뜻한다. 이 문서에서 다루는 "LUT PS"는
-프레임 디버거에 정확히 **`Lut Builder Ldr PS`**와 **`Lut Builder Hdr PS`**로 표시되는 두 패스를
-가리킨다 — 이름의 `PS`는 픽셀 셰이더(Pixel Shader) 스테이지를 뜻하는 접미사이고, 소스 상으로는
-각각 `LutBuilderLdr.shader`/`LutBuilderHdr.shader`에 대응한다. 이 셰이더는 URP가 색 보정
-(화이트 밸런스, 채도, 커브, 채널 믹서 등)과 톤 매핑 곡선을 매 픽셀마다 실시간으로 계산하는 대신,
-그 전체 변환을 **작은 3D 텍스처 하나(보통 32×32×32)에 미리 구워 넣는** 역할을 한다. 둘의 차이는
-다루는 값 범위다 — `Lut Builder Ldr PS`는 LDR 범위(0~1)만, `Lut Builder Hdr PS`는 HDR 값
-(1.0을 넘는 밝기)까지 다룬다.
-
-## 요약
-
-LUT PS 자체는 화면에 보이는 최종 이미지를 그리지 않는다 — 다음 단계(Uber PS)가 참조할 "색
-변환 표"만 만들어서 작은 텍스처에 저장해두는, 일종의 사전 준비(precompute) 단계다. 이렇게
-분리해두면 색 보정+톤 매핑이라는 무거운 수식을 화면 해상도만큼 반복하지 않고, 그 결과표를
-프레임당 한 번만 계산하면 된다.
-
-## 상세
-
-### 왜 색 보정을 "표"로 만들 수 있는가 — 3D LUT의 원리
-
-색 보정과 톤 매핑은 결국 "입력 RGB 색 하나를 받아서 출력 RGB 색 하나로 바꾸는 함수"다. 입력이
-RGB 세 채널이니, 이 함수를 3차원 공간(R축·G축·B축)에서 "입력 좌표 → 출력 색" 매핑으로 생각할
-수 있다. 모든 가능한 입력 색(수백만~수십억 가지 조합)에 대해 미리 계산해둘 수는 없지만, 각
-축을 32단계로만 촘촘히 샘플링해도(32×32×32 = 32,768개 지점) 그 사이 값은 GPU의 텍스처
-하드웨어가 **삼선형 보간(trilinear filtering)**으로 부드럽게 채워준다 — 그래서 32단계 정도의
-LUT로도 눈에 띄는 계단 현상 없이 충분히 매끄러운 결과가 나온다.
-
-### 무엇을 한 번에 굽는가
-
-LutBuilderLdr/Hdr 셰이더는 다음 과정을 **LUT 텍스처를 만들 때 딱 한 번만** 순서대로 계산한다.
-
-1. 화이트 밸런스(색 온도/색조 보정)
-2. 노출, 대비(contrast)
-3. 색조 곡선(커브), 채널 믹서, HSV 조정 같은 세부 색 보정
-4. 채도(saturation)
-5. **톤 매핑 곡선**(Neutral/ACES/커스텀) — [톤 매핑](./Tone-Mapping.md) 참고
-
-이 다섯 단계를 합친 "입력 색 → 출력 색" 함수 하나를 각 LUT 좌표(32×32×32개)에 대해 계산해서
-텍스처 한 장에 채워 넣는다. 이후 `UberPost` 셰이더는 이 다섯 단계를 다시 계산하지 않고, 화면의
-각 픽셀 색을 이 LUT 텍스처의 좌표로 변환해 **한 번 샘플링**하는 것만으로 다섯 단계를 전부 적용한
-효과를 얻는다.
-
-### LDR과 HDR 버전이 나뉘는 이유 — "무한한 값을 유한한 표에 담기"
-
-여기서 실무적으로 까다로운 지점이 하나 있다. LUT의 좌표축은 반드시 유한한 범위(보통 0~1)여야
-하는데, HDR 색상값은 1.0을 훌쩍 넘어 이론상 무한대까지 갈 수 있다. `LutBuilderHdr`는 이 문제를
-**고정된 인코딩 함수**로 해결한다 — LUT를 구울 때, 실제 HDR 값을 그대로 좌표로 쓰지 않고
-로그(log) 계열의 압축 함수를 한 번 거쳐서 "무한한 HDR 범위"를 "유한한 LUT 좌표 범위"로 접어
-넣는다. 그리고 `UberPost`가 런타임에 실제 HDR 픽셀 값으로 LUT를 조회할 때도 **똑같은 인코딩
-함수**를 적용해서 좌표를 구한다 — 굽는 쪽과 읽는 쪽이 같은 "자"를 쓰지 않으면 엉뚱한 색이
-나오기 때문에, 이 인코딩 함수는 두 셰이더 사이에 반드시 짝이 맞아야 하는 암묵적 계약이다.
-`LutBuilderLdr`는 이런 인코딩이 필요 없다 — 애초에 값의 범위가 0~1로 유한하기 때문에 좌표를
-그대로 쓰면 된다.
-
-### 성능 관점 — 왜 이 분리가 값어치를 하는가
-
-풀HD(1920×1080) 기준 화면 픽셀 수는 약 200만 개다. 다섯 단계 색 보정 수식을 픽셀마다 매번
-계산한다면 200만 번 반복해야 하지만, LUT로 구워두면 이 계산은 32,768번(32³)만 일어나고,
-나머지 200만 픽셀은 훨씬 싼 텍스처 조회 한 번으로 끝난다 — 계산량이 대략 1/60 수준으로
-줄어드는 셈이다. 게다가 카메라의 색 보정 설정(Volume)이 프레임마다 바뀌지 않는 한, 이 LUT는
-매 프레임 다시 구울 필요조차 없어 추가로 캐싱할 여지도 있다.
-
-## 비교표
-
-| | `LutBuilderLdr` | `LutBuilderHdr` |
-|---|---|---|
-| 다루는 값 범위 | 0~1 (LDR) | 1.0을 넘는 HDR 값까지 |
-| 좌표 인코딩 | 불필요(값 그대로 좌표) | 필요(로그 계열 인코딩으로 압축) |
-| 쓰이는 상황 | HDR 디스플레이 출력이 아닌 일반 SDR 파이프라인 | HDR 디스플레이 출력, 또는 넓은 노출 범위를 다뤄야 하는 씬 |
-| Uber PS와의 계약 | LUT 좌표 = 픽셀 색 그대로 | LUT 좌표 = 인코딩 함수(픽셀 색) — 양쪽이 같은 함수를 써야 함 |
-
-## 질문
-
-- **Q. LUT 해상도를 32보다 낮추거나 높이면 뭐가 달라지나?**
-  A. 낮추면(예: 16×16×16) 텍스처 크기와 굽는 비용은 줄지만, 색이 급격히 변하는 구간(특히 강한
-  커브나 채도 조정)에서 보간 오차로 인한 미세한 밴딩(계단 현상)이 보일 수 있다. 높이면(예:
-  64×64×64) 정밀도는 좋아지지만 텍스처 용량이 8배로 늘고 굽는 비용도 커진다 — 32는 실무에서
-  "육안으로는 거의 차이가 안 보이면서 비용은 합리적인" 절충점으로 널리 쓰인다.
-
-- **Q. 톤 매핑 곡선을 커스텀하려면 왜 LUT PS를 건드려야 하나?**
-  A. 톤 매핑 곡선 계산이 다섯 단계 중 마지막 단계로 LUT를 굽는 이 셰이더 안에 이미 포함돼 있기
-  때문이다. `UberPost`는 이미 구워진 LUT를 샘플링만 할 뿐 톤 매핑 수식 자체를 모른다 — 그래서
-  Neutral/ACES가 아닌 다른 곡선(예: GT 톤매퍼)을 쓰려면 LUT PS 안의 톤 매핑 계산 부분을 바꿔야
-  하고, 그 결과가 그대로 LUT에 구워져서 Uber PS까지 자연스럽게 전달된다.
-
-- **Q. LUT를 3D 텍스처가 아니라 2D 텍스처로 저장하는 경우도 있다던데?**
-  A. 그렇다. GPU/API에 따라 3D 텍스처 샘플링 지원이 제한적이거나 비용이 더 클 때, 32×32×32
-  3D LUT를 1024×32 크기의 2D 텍스처에 "펼쳐서" 저장하고(B축 32단계를 가로로 이어붙임),
-  샘플링할 때 좌표 계산으로 이 펼침을 다시 풀어내는 방식을 쓰기도 한다 — 원리는 동일하고
-  저장/샘플링 방식만 다르다.
-
-## 예시 코드
-
-```hlsl
-// 개념을 보여주기 위한 최소 예시 — 실제 LutBuilderLdr 소스는 색 보정 단계가 훨씬 많다
-float3 BuildLutEntry(float3 lutCoord)  // lutCoord: LUT 텍스처 상의 (r, g, b) 좌표, 0~1
-{
-    float3 color = lutCoord;               // 이 좌표 자체가 "입력 색"을 의미한다
-    color = ApplyWhiteBalance(color);
-    color = ApplyContrastAndCurves(color);
-    color = ApplySaturation(color);
-    color = ApplyTonemap(color);           // 톤 매핑 곡선 — Tone-Mapping.md 참고
-    return color;                          // 이 값이 LUT 텍스처의 해당 좌표에 저장된다
-}
-```
-
-```hlsl
-// UberPost가 이 LUT를 실제로 쓰는 방식 — LDR 기준 최소 예시
-float3 ApplyColorGradingLdr(float3 pixelColor, Texture3D lutTexture, SamplerState lutSampler)
-{
-    // pixelColor(0~1)를 그대로 좌표로 써서 삼선형 보간 샘플링 한 번
-    return lutTexture.Sample(lutSampler, pixelColor).rgb;
-}
-```
-
-## 플로우차트
-
-`Tone-Mapping.flow.md`의 `BAKE`/`SAMPLE` 단계가 정확히 이 문서의 LUT PS/Uber PS 관계를
-나타낸다 — 별도 플로우차트 없이 그 그림으로 충분하다.
-
-## 실무
-
-실무에서는 이 "미리 굽고 나중에 조회한다"는 패턴이 색 보정에만 쓰이지 않는다 — 서브서피스
-스캐터링 근사, 대기 산란(atmospheric scattering), 심지어 일부 BRDF 근사도 비슷하게 LUT로
-구워서 런타임 비용을 텍스처 조회 수준으로 낮추는 경우가 흔하다. "함수를 매 픽셀 계산할지, 미리
-표로 만들어둘지"는 그래픽스 최적화에서 반복적으로 등장하는 선택지이고, LUT PS는 그 전형적인
-예시를 아주 잘 보여주는 사례다. 영화/사진 편집 도구(DaVinci Resolve, Photoshop 등)에서 흔히
-쓰는 `.cube` LUT 파일도 원리는 완전히 동일하다 — 색보정 소프트웨어에서 만든 LUT를 그대로
-게임 엔진에 가져와 적용하는 워크플로우도 실무에서 널리 쓰인다.
-
-## 같이 보기
-
-- [톤 매핑](./Tone-Mapping.md) — 이 LUT에 구워지는 다섯 단계 중 마지막 단계
-- (추후 예정) Uber PS — 이 LUT를 실제로 소비하는 다음 단계 셰이더
-
-## 참고자료
-
-- 컴투스 TA실 발표, "URP 핵심 포스트 프로세싱 & TAA 커스터마이즈" (유튜브, `watch?v=UwXWFrjVWd4`)
-- Unity 공식 문서 — Color Grading LUTs (Universal Render Pipeline)
-- GPU Gems 2, Ch. 24 "Using Lookup Tables to Accelerate Color Transformations" — LUT 기반 색
-  변환의 고전적인 근거 자료
-
-## 개정 이력
-
-| 날짜 | 무엇을 바꿨나 | 계기 |
-|---|---|---|
-| 2026-09-09 | 최초 작성 | Post Process Data 에셋 디버깅 중 발견한 LUT PS를 별도 주제로 정리 |
-
-</script>
 <script type="text/markdown" data-name="ComputerScience/Graphics/Tone-Mapping.flow.md">
 # 톤 매핑 — HDR 픽셀 하나가 화면에 찍히기까지
 
@@ -1441,7 +1281,7 @@ URP의 Volume 프로파일에서 "Tonemapping" 오버라이드를 켜면 `None`/
 1. **LDR 그레이딩 경로**: `LutBuilderLdr` 셰이더가 색 보정(화이트 밸런스, 커브, 채널 믹서 등)과
    톤 매핑 곡선을 한 번에 계산해서 작은 3D LUT(Look-Up Table) 텍스처 하나에 구워 넣고,
    `UberPost` 셰이더가 화면 전체 픽셀마다 이 LUT를 한 번씩 샘플링해서 최종 색을 얻는다 — 자세한
-   원리는 [LUT PS](./LUT-PS.md) 참고.
+   원리는 [LUT PS](../URP_PostProcessing/LUT-PS.md) 참고.
 2. **HDR 출력 경로**(디스플레이 자체가 HDR을 지원하는 경우): `LutBuilderHdr`가 대신 쓰이며, LUT의
    유효 범위를 HDR 값까지 확장해서 굽는다.
 
@@ -1516,16 +1356,15 @@ float3 ACESFilmApprox(float3 x)
 실무에서는 "어떤 곡선을 쓰느냐"보다 "그 곡선을 얼마나 싸게 적용하느냐"가 더 큰 엔지니어링
 과제인 경우가 많다. Unity URP를 포함해 대부분의 실시간 렌더러는 톤 매핑 수식을 픽셀마다 직접
 계산하지 않고, 작은 3D LUT 텍스처에 미리 구워 넣은 뒤 그 LUT를 샘플링하는 방식을 쓴다 —
-[LUT PS](./LUT-PS.md)에서 이 방식 자체를 다룬다. 최근 업계 동향으로는 Blender/Unreal이 채택하며
-주목받은 **AgX** 톤매퍼가 "고채도 색이 뭉개지지 않는다"는 평가를 받으며 확산 중이고, Unity
-진영에서도 커스텀 셰이더로 이식하는 사례가 늘고 있다.
+[LUT PS](../URP_PostProcessing/LUT-PS.md)에서 이 방식 자체를 다룬다. 최근 업계 동향으로는
+Blender/Unreal이 채택하며 주목받은 **AgX** 톤매퍼가 "고채도 색이 뭉개지지 않는다"는 평가를
+받으며 확산 중이고, Unity 진영에서도 커스텀 셰이더로 이식하는 사례가 늘고 있다.
 
 ## 같이 보기
 
-- [LUT PS](./LUT-PS.md) — 이 톤 매핑 곡선이 실제로 구워져 저장되는 셰이더
-- (추후 예정) Uber PS 및 URP Post Process Data에 포함된 다른 셰이더들 — Post Process Data 에셋을
-  프레임 디버거로 열어보면 LUT PS 외에도 Bloom, Depth Of Field, Uber Post 등 여러 셰이더가
-  참조돼 있다. 이번엔 LUT PS만 먼저 정리했고, 나머지는 각자 별도 문서로 다룰 예정이다.
+- [URP_PostProcessing 개요](../URP_PostProcessing/URP_PostProcessing.md) — Post Process Data에
+  숨어있는 개별 셰이더들을 모아 정리한 카테고리
+- [LUT PS](../URP_PostProcessing/LUT-PS.md) — 이 톤 매핑 곡선이 실제로 구워져 저장되는 셰이더
 
 ## 참고자료
 
@@ -3836,6 +3675,326 @@ export function authHeaders() {
 | 2026-09-08 | 최초 작성 | `auth.js`의 `localStorage` 사용과 CORS 문서의 CSRF 논의를 계기로 독립 주제로 정리 |
 
 </script>
+<script type="text/markdown" data-name="ComputerScience/URP_PostProcessing/LUT-PS.md">
+# LUT PS — 색 보정과 톤 매핑을 미리 구워두는 셰이더
+
+---
+
+- **카테고리**: URP 포스트 프로세싱, 그래픽스
+- **상태**: 완료
+- **기준 시점**: 2026-09-09, Unity 6 URP 기준
+- **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+
+---
+
+## 출처
+
+[톤 매핑](../Graphics/Tone-Mapping.md)을 정리하던 중, Unity URP의 `Post Process Data` 에셋을 프레임
+디버거로 열어봤을 때 **`Lut Builder Ldr PS`**·**`Lut Builder Hdr PS`**(`UberPost` 등 여러
+내부 셰이더와 함께)가 참조돼 있는 걸 발견하고, 그중 톤 매핑과 가장 직접적으로 연결된 이 둘부터
+별도 문서로 정리한 것. 나머지 셰이더(Uber PS 등)는 추후 별도 문서로 다룰 예정.
+
+## 정의
+
+**LUT(Look-Up Table)**은 "미리 계산해둔 값들을 담은 표"를 뜻한다. 이 문서에서 다루는 "LUT PS"는
+프레임 디버거에 정확히 **`Lut Builder Ldr PS`**와 **`Lut Builder Hdr PS`**로 표시되는 두 패스를
+가리킨다 — 이름의 `PS`는 픽셀 셰이더(Pixel Shader) 스테이지를 뜻하는 접미사이고, 소스 상으로는
+각각 `LutBuilderLdr.shader`/`LutBuilderHdr.shader`에 대응한다. 이 셰이더는 URP가 색 보정
+(화이트 밸런스, 채도, 커브, 채널 믹서 등)과 톤 매핑 곡선을 매 픽셀마다 실시간으로 계산하는 대신,
+그 전체 변환을 **작은 3D 텍스처 하나(보통 32×32×32)에 미리 구워 넣는** 역할을 한다. 둘의 차이는
+다루는 값 범위다 — `Lut Builder Ldr PS`는 LDR 범위(0~1)만, `Lut Builder Hdr PS`는 HDR 값
+(1.0을 넘는 밝기)까지 다룬다.
+
+## 요약
+
+LUT PS 자체는 화면에 보이는 최종 이미지를 그리지 않는다 — 다음 단계(Uber PS)가 참조할 "색
+변환 표"만 만들어서 작은 텍스처에 저장해두는, 일종의 사전 준비(precompute) 단계다. 이렇게
+분리해두면 색 보정+톤 매핑이라는 무거운 수식을 화면 해상도만큼 반복하지 않고, 그 결과표를
+프레임당 한 번만 계산하면 된다.
+
+## 상세
+
+### 왜 색 보정을 "표"로 만들 수 있는가 — 3D LUT의 원리
+
+색 보정과 톤 매핑은 결국 "입력 RGB 색 하나를 받아서 출력 RGB 색 하나로 바꾸는 함수"다. 입력이
+RGB 세 채널이니, 이 함수를 3차원 공간(R축·G축·B축)에서 "입력 좌표 → 출력 색" 매핑으로 생각할
+수 있다. 모든 가능한 입력 색(수백만~수십억 가지 조합)에 대해 미리 계산해둘 수는 없지만, 각
+축을 32단계로만 촘촘히 샘플링해도(32×32×32 = 32,768개 지점) 그 사이 값은 GPU의 텍스처
+하드웨어가 **삼선형 보간(trilinear filtering)**으로 부드럽게 채워준다 — 그래서 32단계 정도의
+LUT로도 눈에 띄는 계단 현상 없이 충분히 매끄러운 결과가 나온다.
+
+### 무엇을 한 번에 굽는가
+
+LutBuilderLdr/Hdr 셰이더는 다음 과정을 **LUT 텍스처를 만들 때 딱 한 번만** 순서대로 계산한다.
+
+1. 화이트 밸런스(색 온도/색조 보정)
+2. 노출, 대비(contrast)
+3. 색조 곡선(커브), 채널 믹서, HSV 조정 같은 세부 색 보정
+4. 채도(saturation)
+5. **톤 매핑 곡선**(Neutral/ACES/커스텀) — [톤 매핑](../Graphics/Tone-Mapping.md) 참고
+
+이 다섯 단계를 합친 "입력 색 → 출력 색" 함수 하나를 각 LUT 좌표(32×32×32개)에 대해 계산해서
+텍스처 한 장에 채워 넣는다. 이후 `UberPost` 셰이더는 이 다섯 단계를 다시 계산하지 않고, 화면의
+각 픽셀 색을 이 LUT 텍스처의 좌표로 변환해 **한 번 샘플링**하는 것만으로 다섯 단계를 전부 적용한
+효과를 얻는다.
+
+### LDR과 HDR 버전이 나뉘는 이유 — "무한한 값을 유한한 표에 담기"
+
+여기서 실무적으로 까다로운 지점이 하나 있다. LUT의 좌표축은 반드시 유한한 범위(보통 0~1)여야
+하는데, HDR 색상값은 1.0을 훌쩍 넘어 이론상 무한대까지 갈 수 있다. `LutBuilderHdr`는 이 문제를
+**고정된 인코딩 함수**로 해결한다 — LUT를 구울 때, 실제 HDR 값을 그대로 좌표로 쓰지 않고
+로그(log) 계열의 압축 함수를 한 번 거쳐서 "무한한 HDR 범위"를 "유한한 LUT 좌표 범위"로 접어
+넣는다. 그리고 `UberPost`가 런타임에 실제 HDR 픽셀 값으로 LUT를 조회할 때도 **똑같은 인코딩
+함수**를 적용해서 좌표를 구한다 — 굽는 쪽과 읽는 쪽이 같은 "자"를 쓰지 않으면 엉뚱한 색이
+나오기 때문에, 이 인코딩 함수는 두 셰이더 사이에 반드시 짝이 맞아야 하는 암묵적 계약이다.
+`LutBuilderLdr`는 이런 인코딩이 필요 없다 — 애초에 값의 범위가 0~1로 유한하기 때문에 좌표를
+그대로 쓰면 된다.
+
+### 성능 관점 — 왜 이 분리가 값어치를 하는가
+
+풀HD(1920×1080) 기준 화면 픽셀 수는 약 200만 개다. 다섯 단계 색 보정 수식을 픽셀마다 매번
+계산한다면 200만 번 반복해야 하지만, LUT로 구워두면 이 계산은 32,768번(32³)만 일어나고,
+나머지 200만 픽셀은 훨씬 싼 텍스처 조회 한 번으로 끝난다 — 계산량이 대략 1/60 수준으로
+줄어드는 셈이다. 게다가 카메라의 색 보정 설정(Volume)이 프레임마다 바뀌지 않는 한, 이 LUT는
+매 프레임 다시 구울 필요조차 없어 추가로 캐싱할 여지도 있다.
+
+## 비교표
+
+| | `LutBuilderLdr` | `LutBuilderHdr` |
+|---|---|---|
+| 다루는 값 범위 | 0~1 (LDR) | 1.0을 넘는 HDR 값까지 |
+| 좌표 인코딩 | 불필요(값 그대로 좌표) | 필요(로그 계열 인코딩으로 압축) |
+| 쓰이는 상황 | HDR 디스플레이 출력이 아닌 일반 SDR 파이프라인 | HDR 디스플레이 출력, 또는 넓은 노출 범위를 다뤄야 하는 씬 |
+| Uber PS와의 계약 | LUT 좌표 = 픽셀 색 그대로 | LUT 좌표 = 인코딩 함수(픽셀 색) — 양쪽이 같은 함수를 써야 함 |
+
+## 질문
+
+- **Q. LUT 해상도를 32보다 낮추거나 높이면 뭐가 달라지나?**
+  A. 낮추면(예: 16×16×16) 텍스처 크기와 굽는 비용은 줄지만, 색이 급격히 변하는 구간(특히 강한
+  커브나 채도 조정)에서 보간 오차로 인한 미세한 밴딩(계단 현상)이 보일 수 있다. 높이면(예:
+  64×64×64) 정밀도는 좋아지지만 텍스처 용량이 8배로 늘고 굽는 비용도 커진다 — 32는 실무에서
+  "육안으로는 거의 차이가 안 보이면서 비용은 합리적인" 절충점으로 널리 쓰인다.
+
+- **Q. 톤 매핑 곡선을 커스텀하려면 왜 LUT PS를 건드려야 하나?**
+  A. 톤 매핑 곡선 계산이 다섯 단계 중 마지막 단계로 LUT를 굽는 이 셰이더 안에 이미 포함돼 있기
+  때문이다. `UberPost`는 이미 구워진 LUT를 샘플링만 할 뿐 톤 매핑 수식 자체를 모른다 — 그래서
+  Neutral/ACES가 아닌 다른 곡선(예: GT 톤매퍼)을 쓰려면 LUT PS 안의 톤 매핑 계산 부분을 바꿔야
+  하고, 그 결과가 그대로 LUT에 구워져서 Uber PS까지 자연스럽게 전달된다.
+
+- **Q. LUT를 3D 텍스처가 아니라 2D 텍스처로 저장하는 경우도 있다던데?**
+  A. 그렇다. GPU/API에 따라 3D 텍스처 샘플링 지원이 제한적이거나 비용이 더 클 때, 32×32×32
+  3D LUT를 1024×32 크기의 2D 텍스처에 "펼쳐서" 저장하고(B축 32단계를 가로로 이어붙임),
+  샘플링할 때 좌표 계산으로 이 펼침을 다시 풀어내는 방식을 쓰기도 한다 — 원리는 동일하고
+  저장/샘플링 방식만 다르다.
+
+## 예시 코드
+
+```hlsl
+// 개념을 보여주기 위한 최소 예시 — 실제 LutBuilderLdr 소스는 색 보정 단계가 훨씬 많다
+float3 BuildLutEntry(float3 lutCoord)  // lutCoord: LUT 텍스처 상의 (r, g, b) 좌표, 0~1
+{
+    float3 color = lutCoord;               // 이 좌표 자체가 "입력 색"을 의미한다
+    color = ApplyWhiteBalance(color);
+    color = ApplyContrastAndCurves(color);
+    color = ApplySaturation(color);
+    color = ApplyTonemap(color);           // 톤 매핑 곡선 — Tone-Mapping.md 참고
+    return color;                          // 이 값이 LUT 텍스처의 해당 좌표에 저장된다
+}
+```
+
+```hlsl
+// UberPost가 이 LUT를 실제로 쓰는 방식 — LDR 기준 최소 예시
+float3 ApplyColorGradingLdr(float3 pixelColor, Texture3D lutTexture, SamplerState lutSampler)
+{
+    // pixelColor(0~1)를 그대로 좌표로 써서 삼선형 보간 샘플링 한 번
+    return lutTexture.Sample(lutSampler, pixelColor).rgb;
+}
+```
+
+## 플로우차트
+
+`Tone-Mapping.flow.md`의 `BAKE`/`SAMPLE` 단계가 정확히 이 문서의 LUT PS/Uber PS 관계를
+나타낸다 — 별도 플로우차트 없이 그 그림으로 충분하다.
+
+## 실무
+
+실무에서는 이 "미리 굽고 나중에 조회한다"는 패턴이 색 보정에만 쓰이지 않는다 — 서브서피스
+스캐터링 근사, 대기 산란(atmospheric scattering), 심지어 일부 BRDF 근사도 비슷하게 LUT로
+구워서 런타임 비용을 텍스처 조회 수준으로 낮추는 경우가 흔하다. "함수를 매 픽셀 계산할지, 미리
+표로 만들어둘지"는 그래픽스 최적화에서 반복적으로 등장하는 선택지이고, LUT PS는 그 전형적인
+예시를 아주 잘 보여주는 사례다. 영화/사진 편집 도구(DaVinci Resolve, Photoshop 등)에서 흔히
+쓰는 `.cube` LUT 파일도 원리는 완전히 동일하다 — 색보정 소프트웨어에서 만든 LUT를 그대로
+게임 엔진에 가져와 적용하는 워크플로우도 실무에서 널리 쓰인다.
+
+## 같이 보기
+
+- [URP_PostProcessing 개요](./URP_PostProcessing.md) — 이 셰이더가 전체 파이프라인 어디에 있는지
+- [톤 매핑](../Graphics/Tone-Mapping.md) — 이 LUT에 구워지는 다섯 단계 중 마지막 단계
+- (추후 예정) Uber PS — 이 LUT를 실제로 소비하는 다음 단계 셰이더
+
+## 참고자료
+
+- 컴투스 TA실 발표, "URP 핵심 포스트 프로세싱 & TAA 커스터마이즈" (유튜브, `watch?v=UwXWFrjVWd4`)
+- Unity 공식 문서 — Color Grading LUTs (Universal Render Pipeline)
+- GPU Gems 2, Ch. 24 "Using Lookup Tables to Accelerate Color Transformations" — LUT 기반 색
+  변환의 고전적인 근거 자료
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-09 | 최초 작성 | Post Process Data 에셋 디버깅 중 발견한 LUT PS를 별도 주제로 정리 |
+
+</script>
+<script type="text/markdown" data-name="ComputerScience/URP_PostProcessing/URP_PostProcessing.md">
+# URP_PostProcessing — `Post Process Data`에 숨어있는 셰이더들, 한눈에 보기
+
+---
+
+- **카테고리**: URP 포스트 프로세싱, 그래픽스
+- **상태**: 학습 중 (개별 셰이더 문서가 늘어날 때마다 계속 갱신)
+- **기준 시점**: 2026-09-09, Unity 6 URP 기준
+- **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+
+---
+
+> 이 문서는 개별 셰이더 하나하나를 파고드는 다른 문서들과 달리, **이 카테고리 폴더 전체를
+> 조망하는 색인**이다. `Post Process Data` 에셋 자체가 무엇이고 그 안의 셰이더들이 전체
+> 파이프라인에서 어떤 순서로 실행되는지를 여기서 먼저 잡고, 각 셰이더의 상세한 동작은 아래 표에서
+> 링크된 개별 문서에서 다룬다 — "숲"은 여기, "나무"는 개별 문서.
+
+## 출처
+
+[LUT PS](./LUT-PS.md)를 정리하던 중, "이 셰이더 하나만 따로 알아서는 전체 그림이 안 잡힌다"는
+걸 느끼고, `Post Process Data` 에셋 자체와 그 안에 참조된 셰이더들의 전체 구성을 먼저 정리해야
+겠다고 판단해 만든 카테고리 개요 문서.
+
+## 정의
+
+Unity URP는 블룸, 피사계 심도, 색 보정, 톤 매핑 같은 여러 포스트 프로세싱 효과를 각각 별도
+셰이더로 구현해두고, 이 셰이더들에 대한 참조를 **`Post Process Data`라는 하나의 ScriptableObject
+에셋**에 모아 둔다. URP 렌더러(Forward/Deferred) 세팅이 이 에셋을 참조하며, 여기 참조된 셰이더를
+바꿔치기하면 URP가 그 교체된 셰이더로 그대로 동작한다 — 즉 이 에셋은 "URP가 포스트 프로세싱을
+어떤 코드로 수행할지"를 결정하는 진입점이다. 프레임 디버거로 포스트 프로세싱이 일어나는 프레임을
+열어보면, 이 에셋에 참조된 셰이더들이 각각 하나의 드로우콜/패스로 나타난다.
+
+## 요약
+
+포스트 프로세싱은 하나의 거대한 셰이더가 다 하는 게 아니라, "무거운 다중 패스 효과(블룸, DOF)는
+따로 계산해두고, 그 결과들을 가벼운 효과들과 함께 한 번에 합성하는 셰이더(Uber Post)로 몰아
+넣는다"는 구조로 나뉘어 있다. 이 구조를 알면, 왜 새 톤 매핑 곡선을 넣으려면 LUT PS를 고쳐야
+하고 왜 블룸을 고치려면 별도 렌더 패스를 손봐야 하는지가 자연스럽게 이해된다.
+
+## 상세
+
+### 왜 셰이더 하나로 다 하지 않는가
+
+블룸과 피사계 심도는 화면을 여러 번 줄였다 키우거나(다운/업샘플), 픽셀마다 주변을 넓게
+샘플링해야 해서 **여러 번의 렌더 패스**가 필요하다. 반면 비네트, 색 보정, 채도, 필름 그레인,
+디더링 같은 효과는 각 픽셀 하나의 색만 보고 계산할 수 있어 **한 패스**로 충분하다. 이 성격이
+다른 두 부류를 같은 셰이더에 억지로 몰아넣으면 코드가 복잡해지고 재사용도 어려워지므로, URP는
+"여러 패스가 필요한 효과는 따로 계산해서 중간 결과 텍스처만 넘기고, 한 패스로 끝나는 효과들은
+전부 `UberPost`라는 하나의 셰이더에 몰아서 마지막에 한 번에 처리한다"는 구조를 쓴다 — 화면
+전체를 다시 그리는 값비싼 풀스크린 패스의 **횟수** 자체를 줄이려는 설계다.
+
+### 전체 파이프라인 순서(개략)
+
+```
+씬 컬러 버퍼(HDR)
+   │
+   ├─▶ Depth Of Field 관련 셰이더 ─┐  (여러 패스: 프리필터→블러→합성)
+   │                               │
+   ├─▶ Bloom 관련 셰이더 ──────────┤  (여러 패스: 임계값 추출→다운/업샘플→합성 대상 텍스처)
+   │                               │
+   ▼                               ▼
+   LutBuilderLdr/Hdr PS (LUT PS) ─▶ 3D LUT 텍스처 굽기 (색 보정 + 톤 매핑)
+                                    │
+                                    ▼
+                              UberPost PS
+        (블룸 합성 + LUT 샘플링 + 비네트 + 색수차 + 필름 그레인 + 디더링 등을 한 번에)
+                                    │
+                                    ▼
+                              최종 LDR 프레임 출력
+```
+
+이 순서는 URP 버전/설정에 따라 세부적으로 다를 수 있으므로, 정확한 실행 순서가 필요하면 실제
+프로젝트를 프레임 디버거로 열어 확인하는 걸 우선한다 — 이 도표는 "왜 이런 구조로 나뉘어 있는가"를
+이해하기 위한 개략도다.
+
+### 이 카테고리의 문서들이 다루는 범위
+
+`Post Process Data`에 참조된 셰이더는 하나가 아니라 여러 개다. 이 카테고리는 그 셰이더들을 하나씩
+개별 문서로 정리하는 자리이고, 커브 이론이나 특정 최적화 기법처럼 셰이더 하나에 종속되지 않는
+더 일반적인 내용은 `ComputerScience/Graphics/`에 남겨둔다 — 예를 들어 [톤 매핑](../Graphics/Tone-Mapping.md)의
+곡선 비교 자체는 URP뿐 아니라 다른 엔진에도 적용되는 일반 이론이라 `Graphics`에 있고, 그 곡선이
+URP에서 실제로 어느 셰이더에 어떻게 구워지는지는 이 카테고리의 [LUT PS](./LUT-PS.md)가 다룬다.
+
+## 비교표 — `Post Process Data`에 참조된 셰이더들
+
+| 셰이더(프레임 디버거 표시명) | 역할 | 문서 상태 |
+|---|---|---|
+| `Lut Builder Ldr PS` / `Lut Builder Hdr PS` | 색 보정 + 톤 매핑 곡선을 3D LUT 텍스처에 굽기 | [LUT PS](./LUT-PS.md) — 완료 |
+| `Uber Post PS` | LUT 샘플링, 블룸 합성, 비네트, 색수차, 필름 그레인, 디더링 등을 한 패스로 합성 | 학습 전 |
+| Bloom 관련 패스(임계값 추출/다운샘플/업샘플) | 밝은 영역을 추출해 블러로 번지게 만든 텍스처를 준비 | 학습 전 — 최적화 사례는 [URP 블룸 최적화](../Graphics/URP-Bloom-Optimization.md) 참고 |
+| Depth Of Field 관련 패스(가우시안/보케) | 초점 거리 기반으로 흐림 정도가 다른 블러를 계산 | 학습 전 — 최적화 사례는 [URP DOF 최적화](../Graphics/URP-DOF-Optimization.md) 참고 |
+| `Final Post PS` | 최종 업스케일링, FXAA, 화면 전환 시 스케일링 등 마지막 마무리 | 학습 전 |
+
+## 질문
+
+- **Q. `Post Process Data`의 셰이더를 교체하면 왜 새 스크립터블 렌더 패스를 추가하는 것보다
+  안전한가?**
+  A. 새 렌더 패스를 추가하면 그 패스가 URP의 기존 패스들과 **어떤 순서로 실행되는지**를
+  직접 관리해야 하고, 잘못 끼워 넣으면 같은 효과가 중복으로 실행되거나 순서가 꼬일 위험이 있다.
+  반면 `Post Process Data`의 셰이더 레퍼런스만 바꾸면, URP가 원래 그 셰이더를 호출하던 자리에서
+  그대로 교체된 코드가 실행되므로 패스 순서 자체는 전혀 바뀌지 않는다 — "무엇을 실행할지"만
+  바꾸고 "언제 실행할지"는 URP에게 맡기는 셈이다.
+
+- **Q. 셰이더 이름 뒤에 붙는 `PS`는 항상 "Pixel Shader"를 뜻하나?**
+  A. 그렇다. 그래픽스 API/프레임 디버거에서 셰이더 프로그램은 보통 스테이지별로
+  나뉘어 표시된다 — 정점 처리는 `VS`(Vertex Shader), 픽셀(프래그먼트) 처리는 `PS`(Pixel
+  Shader). 포스트 프로세싱은 화면 전체를 덮는 사각형(풀스크린 트라이앵글)에 대해 픽셀 셰이더만
+  실질적인 일을 하므로, 디버거에 `PS` 스테이지만 두드러지게 보이는 경우가 많다.
+
+## 예시 코드
+
+(해당 없음 — 이 문서는 개별 셰이더의 구현이 아니라 전체 구성과 배치를 다루는 개요 문서다. 실제
+코드 예시는 각 셰이더의 개별 문서를 참고한다.)
+
+## 플로우차트
+
+위 "전체 파이프라인 순서" 도표가 이 문서의 핵심 흐름이다 — 별도 Mermaid 플로우차트 없이 그
+도표로 충분하다고 판단했다. 개별 셰이더 단위의 상세한 흐름(예: LUT 굽기→샘플링)은 각 문서의
+플로우차트를 참고한다.
+
+## 실무
+
+실무에서 포스트 프로세싱 파이프라인을 커스텀해야 할 때, 가장 먼저 할 일은 "내가 바꾸고 싶은
+효과가 여러 패스가 필요한 종류(블룸/DOF류)인지, 한 패스로 끝나는 종류(Uber Post류)인지"를
+구분하는 것이다. 전자라면 그 효과 전용 셰이더/렌더 패스를 찾아야 하고, 후자라면 Uber Post 안의
+해당 로직만 찾아 고치면 된다 — 이 구분 없이 무작정 셰이더를 뒤지면 원하는 코드를 찾는 데만
+오래 걸린다. 이 카테고리는 그 구분 지도를 미리 그려두는 역할을 한다.
+
+## 같이 보기
+
+- [LUT PS](./LUT-PS.md) — 현재 이 카테고리에서 유일하게 완료된 개별 셰이더 문서
+- [톤 매핑](../Graphics/Tone-Mapping.md) — LUT PS가 굽는 다섯 단계 중 하나(커브 이론 자체는
+  URP에 종속되지 않아 `Graphics`에 있음)
+- [URP 블룸 최적화](../Graphics/URP-Bloom-Optimization.md) · [URP DOF 최적화](../Graphics/URP-DOF-Optimization.md) ·
+  [Custom TAA](../Graphics/Custom-TAA.md) — 같은 컴투스 TA실 발표에서 나온 최적화 사례들(TAA는
+  `Post Process Data`가 아니라 URP 렌더러의 별도 안티에일리어싱 시스템이라 이 카테고리 밖에 있음)
+
+## 참고자료
+
+- 컴투스 TA실 발표, "URP 핵심 포스트 프로세싱 & TAA 커스터마이즈" (유튜브, `watch?v=UwXWFrjVWd4`)
+- Unity 공식 문서 — Universal Render Pipeline, Post-processing overview
+
+## 개정 이력
+
+| 날짜 | 무엇을 바꿨나 | 계기 |
+|---|---|---|
+| 2026-09-09 | 최초 작성 | LUT PS 문서를 별도 카테고리로 분리하며, 그 카테고리 전체를 조망하는 개요 문서로 작성 |
+
+</script>
 <script type="text/markdown" data-name="ComputerScience/WebDevelopment/CRA-vs-Vite.md">
 # CRA(Create React App) → Vite 마이그레이션
 
@@ -5078,7 +5237,7 @@ function renderMarkdown(src){
    ──────────────────────────────────────────────────────────── */
 const docs = [];   // {name, text}
 
-const GROUP_ORDER = ['시작', 'Architecture', 'Graphics', 'Database', 'Infrastructure', 'Network', 'Security', 'WebDevelopment', '기타'];
+const GROUP_ORDER = ['시작', 'Architecture', 'Graphics', 'URP_PostProcessing', 'Database', 'Infrastructure', 'Network', 'Security', 'WebDevelopment', '기타'];
 
 function groupOf(name){
   if(/README/i.test(name)) return '시작';

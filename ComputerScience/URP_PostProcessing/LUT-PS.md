@@ -2,7 +2,7 @@
 
 ---
 
-- **카테고리**: 그래픽스, 렌더링
+- **카테고리**: URP 포스트 프로세싱, 그래픽스
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
@@ -11,7 +11,7 @@
 
 ## 출처
 
-[톤 매핑](./Tone-Mapping.md)을 정리하던 중, Unity URP의 `Post Process Data` 에셋을 프레임
+[톤 매핑](../Graphics/Tone-Mapping.md)을 정리하던 중, Unity URP의 `Post Process Data` 에셋을 프레임
 디버거로 열어봤을 때 **`Lut Builder Ldr PS`**·**`Lut Builder Hdr PS`**(`UberPost` 등 여러
 내부 셰이더와 함께)가 참조돼 있는 걸 발견하고, 그중 톤 매핑과 가장 직접적으로 연결된 이 둘부터
 별도 문서로 정리한 것. 나머지 셰이더(Uber PS 등)는 추후 별도 문서로 다룰 예정.
@@ -53,7 +53,7 @@ LutBuilderLdr/Hdr 셰이더는 다음 과정을 **LUT 텍스처를 만들 때 �
 2. 노출, 대비(contrast)
 3. 색조 곡선(커브), 채널 믹서, HSV 조정 같은 세부 색 보정
 4. 채도(saturation)
-5. **톤 매핑 곡선**(Neutral/ACES/커스텀) — [톤 매핑](./Tone-Mapping.md) 참고
+5. **톤 매핑 곡선**(Neutral/ACES/커스텀) — [톤 매핑](../Graphics/Tone-Mapping.md) 참고
 
 이 다섯 단계를 합친 "입력 색 → 출력 색" 함수 하나를 각 LUT 좌표(32×32×32개)에 대해 계산해서
 텍스처 한 장에 채워 넣는다. 이후 `UberPost` 셰이더는 이 다섯 단계를 다시 계산하지 않고, 화면의
@@ -150,7 +150,8 @@ float3 ApplyColorGradingLdr(float3 pixelColor, Texture3D lutTexture, SamplerStat
 
 ## 같이 보기
 
-- [톤 매핑](./Tone-Mapping.md) — 이 LUT에 구워지는 다섯 단계 중 마지막 단계
+- [URP_PostProcessing 개요](./URP_PostProcessing.md) — 이 셰이더가 전체 파이프라인 어디에 있는지
+- [톤 매핑](../Graphics/Tone-Mapping.md) — 이 LUT에 구워지는 다섯 단계 중 마지막 단계
 - (추후 예정) Uber PS — 이 LUT를 실제로 소비하는 다음 단계 셰이더
 
 ## 참고자료
