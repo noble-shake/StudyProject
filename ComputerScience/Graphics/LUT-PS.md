@@ -12,17 +12,20 @@
 ## 출처
 
 [톤 매핑](./Tone-Mapping.md)을 정리하던 중, Unity URP의 `Post Process Data` 에셋을 프레임
-디버거로 열어봤을 때 `LutBuilderLdr`/`LutBuilderHdr`("LUT PS")와 `UberPost` 등 여러 내부
-셰이더가 참조돼 있는 걸 발견하고, 그중 톤 매핑과 가장 직접적으로 연결된 LUT PS부터 별도 문서로
-정리한 것. 나머지 셰이더(Uber PS 등)는 추후 별도 문서로 다룰 예정.
+디버거로 열어봤을 때 **`Lut Builder Ldr PS`**·**`Lut Builder Hdr PS`**(`UberPost` 등 여러
+내부 셰이더와 함께)가 참조돼 있는 걸 발견하고, 그중 톤 매핑과 가장 직접적으로 연결된 이 둘부터
+별도 문서로 정리한 것. 나머지 셰이더(Uber PS 등)는 추후 별도 문서로 다룰 예정.
 
 ## 정의
 
-**LUT(Look-Up Table)**은 "미리 계산해둔 값들을 담은 표"를 뜻한다. LUT PS는 URP가 색 보정
+**LUT(Look-Up Table)**은 "미리 계산해둔 값들을 담은 표"를 뜻한다. 이 문서에서 다루는 "LUT PS"는
+프레임 디버거에 정확히 **`Lut Builder Ldr PS`**와 **`Lut Builder Hdr PS`**로 표시되는 두 패스를
+가리킨다 — 이름의 `PS`는 픽셀 셰이더(Pixel Shader) 스테이지를 뜻하는 접미사이고, 소스 상으로는
+각각 `LutBuilderLdr.shader`/`LutBuilderHdr.shader`에 대응한다. 이 셰이더는 URP가 색 보정
 (화이트 밸런스, 채도, 커브, 채널 믹서 등)과 톤 매핑 곡선을 매 픽셀마다 실시간으로 계산하는 대신,
-그 전체 변환을 **작은 3D 텍스처 하나(보통 32×32×32)에 미리 구워 넣는** 역할을 하는 셰이더다.
-URP엔 두 버전이 있다 — LDR 범위(0~1)만 다루는 `LutBuilderLdr`, HDR 값(1.0을 넘는 밝기)까지
-다루는 `LutBuilderHdr`.
+그 전체 변환을 **작은 3D 텍스처 하나(보통 32×32×32)에 미리 구워 넣는** 역할을 한다. 둘의 차이는
+다루는 값 범위다 — `Lut Builder Ldr PS`는 LDR 범위(0~1)만, `Lut Builder Hdr PS`는 HDR 값
+(1.0을 넘는 밝기)까지 다룬다.
 
 ## 요약
 
