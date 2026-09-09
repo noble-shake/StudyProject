@@ -81,6 +81,7 @@ ComputerScience/
 | 주제 | 출처 | 관련 레포지토리 | 상태 |
 |---|---|---|---|
 | [톤 매핑(Tone Mapping)](ComputerScience/Graphics/Tone-Mapping.md) | 순수 학습 호기심 + 컴투스 TA실 발표 영상 | `-` | 완료 |
+| [GT 톤매퍼(Uchimura)](ComputerScience/Graphics/GT-Tonemapping.md) | 톤 매핑 비교표에서 파생 — 스타일라이즈 프로젝트 선호 이유가 궁금해서 | `-` | 완료 |
 | [URP 블룸 최적화](ComputerScience/Graphics/URP-Bloom-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [URP DOF 최적화](ComputerScience/Graphics/URP-DOF-Optimization.md) | 컴투스 TA실 발표 영상 | `-` | 완료 |
 | [커스텀 TAA](ComputerScience/Graphics/Custom-TAA.md) | 컴투스 TA실 발표 영상(세션 하이라이트) | `-` | 완료 |
