@@ -17,12 +17,19 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은 파생물이라 `.md`가
 원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
 
-사이드바 위쪽의 **기술 스택별 / 프로젝트별** 토글로 탐색 축을 바꿀 수 있습니다 — 기술 스택별은
-지금까지의 `ComputerScience/{분야}` 카테고리 그룹(기본값), 프로젝트별은 문서 메타의 "관련
-레포지토리" 필드를 기준으로 같은 프로젝트에서 나온 문서를 전부 한 그룹으로 모읍니다(예:
-`RottenNoble-Project`에서 나온 문서 20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져
-있는데, 프로젝트별 보기에서는 한 그룹으로 보임). 새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련
-레포지토리" 필드를 정확히 채워야 이 보기가 제대로 동작합니다.
+사이드바 위쪽의 **기술 스택별 / 프로젝트별 / 엔진별** 토글로 탐색 축을 바꿀 수 있습니다.
+
+- **기술 스택별**(기본값) — 지금까지의 `ComputerScience/{분야}` 카테고리 그룹
+- **프로젝트별** — 문서 메타의 "관련 레포지토리" 필드 기준. `RottenNoble-Project`에서 나온 문서
+  20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져 있는데, 이 보기에서는 한 그룹으로
+  보입니다.
+- **엔진별** — 문서 메타의 "엔진" 필드 기준. `DevelopPrompt`의 Unity/Python/Web 분류를 그대로
+  따릅니다 — 예를 들어 Graphics/URP_PostProcessing 카테고리의 순수 이론 문서들과
+  WebDevelopment/Security 등의 RottenNoble-Project 관련 문서들이 지금은 카테고리별로만 갈라져
+  있는데, 이 보기에서는 "Unity로 배운 것 전부" / "Web으로 배운 것 전부"로 묶입니다.
+
+새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련 레포지토리"·"엔진" 필드를 정확히 채워야 두 보기가
+제대로 동작합니다.
 
 ## 구조
 

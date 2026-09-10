@@ -1,9 +1,10 @@
 # VIEWER — md 문서 뷰어
 
 `DevelopPrompt/VIEWER`의 엔진을 기반으로 한다. 다른 점 두 가지: `index.html`의 사이드바 그룹핑을
-`ComputerScience/{분야}/` 카테고리 트리에 맞춘 것, 그리고 사이드바 위쪽에 **기술 스택별 / 프로젝트별**
-보기 토글을 추가한 것 — 후자는 문서 메타의 "관련 레포지토리" 필드에 의존하는 StudyProject만의
-확장이라 `DevelopPrompt/VIEWER`로 역이식하지 않는다(그쪽 문서 컨벤션엔 그 필드가 없다).
+`ComputerScience/{분야}/` 카테고리 트리에 맞춘 것, 그리고 사이드바 위쪽에 **기술 스택별 / 프로젝트별 /
+엔진별** 3-way 보기 토글을 추가한 것 — 뒤 둘은 문서 메타의 "관련 레포지토리"·"엔진" 필드에 의존하는
+StudyProject만의 확장이라 `DevelopPrompt/VIEWER`로 역이식하지 않는다(그쪽 문서 컨벤션엔 그 필드들이
+없다).
 
 ## 파일
 

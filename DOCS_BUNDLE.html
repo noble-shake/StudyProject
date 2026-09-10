@@ -53,7 +53,7 @@
     background:var(--bg); border:1px solid var(--line); border-radius:7px;
   }
   .modebtn{
-    flex:1; padding:6px 4px; font:inherit; font-size:12px; font-weight:600;
+    flex:1; padding:6px 2px; font:inherit; font-size:11.5px; font-weight:600;
     background:none; border:0; border-radius:5px; color:var(--muted); cursor:pointer;
   }
   .modebtn:hover{color:var(--fg)}
@@ -139,6 +139,7 @@
     <div class="viewmode" role="tablist" aria-label="보기 방식">
       <button type="button" class="modebtn active" data-mode="category" role="tab" aria-selected="true">기술 스택별</button>
       <button type="button" class="modebtn" data-mode="project" role="tab" aria-selected="false">프로젝트별</button>
+      <button type="button" class="modebtn" data-mode="engine" role="tab" aria-selected="false">엔진별</button>
     </div>
     <input id="search" type="search" placeholder="문서 검색…" autocomplete="off">
     <nav id="nav"></nav>
@@ -180,12 +181,19 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은 파생물이라 `.md`가
 원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
 
-사이드바 위쪽의 **기술 스택별 / 프로젝트별** 토글로 탐색 축을 바꿀 수 있습니다 — 기술 스택별은
-지금까지의 `ComputerScience/{분야}` 카테고리 그룹(기본값), 프로젝트별은 문서 메타의 "관련
-레포지토리" 필드를 기준으로 같은 프로젝트에서 나온 문서를 전부 한 그룹으로 모읍니다(예:
-`RottenNoble-Project`에서 나온 문서 20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져
-있는데, 프로젝트별 보기에서는 한 그룹으로 보임). 새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련
-레포지토리" 필드를 정확히 채워야 이 보기가 제대로 동작합니다.
+사이드바 위쪽의 **기술 스택별 / 프로젝트별 / 엔진별** 토글로 탐색 축을 바꿀 수 있습니다.
+
+- **기술 스택별**(기본값) — 지금까지의 `ComputerScience/{분야}` 카테고리 그룹
+- **프로젝트별** — 문서 메타의 "관련 레포지토리" 필드 기준. `RottenNoble-Project`에서 나온 문서
+  20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져 있는데, 이 보기에서는 한 그룹으로
+  보입니다.
+- **엔진별** — 문서 메타의 "엔진" 필드 기준. `DevelopPrompt`의 Unity/Python/Web 분류를 그대로
+  따릅니다 — 예를 들어 Graphics/URP_PostProcessing 카테고리의 순수 이론 문서들과
+  WebDevelopment/Security 등의 RottenNoble-Project 관련 문서들이 지금은 카테고리별로만 갈라져
+  있는데, 이 보기에서는 "Unity로 배운 것 전부" / "Web으로 배운 것 전부"로 묶입니다.
+
+새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련 레포지토리"·"엔진" 필드를 정확히 채워야 두 보기가
+제대로 동작합니다.
 
 ## 구조
 
@@ -288,6 +296,10 @@ ComputerScience/
 - **기준 시점**: {YYYY-MM-DD} — 기술은 버전이 바뀌면 내용이 낡는다. 가능하면 버전도 같이 적는다
   (예: "2026-09-08, PHP 8.x 기준")
 - **관련 레포지토리**: `{저장소명}` — 이 주제가 실제로 쓰인 코드가 있는 저장소. 없으면 `-`
+- **엔진**: `{Unity|Python|Web}` — `DevelopPrompt`의 엔진 분류를 그대로 따른다(`DevelopPrompt/README.md`
+  "엔진 폴더" 절 참고). 관련 레포지토리가 있으면 그 저장소의 `DevelopPrompt/CurrentProject/_{프로젝트명}/
+  project.json`의 `engines` 값을 그대로 옮긴다. 관련 레포지토리가 `-`인 순수 개념 학습 문서는, 그
+  개념을 실제로 다룬 맥락(예: Unity URP 발표 영상)이 있으면 그 엔진을, 어느 엔진에도 안 묶이면 `-`를 쓴다.
 
 ---
 
@@ -435,6 +447,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-09
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -603,6 +616,7 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 - **상태**: 완료 — 1~3회차로 종료, 개별 주제 문서로 이어짐
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -772,6 +786,7 @@ CORS와의 상호작용은 언급이 없음). `STUDY-01`(JWT vs 여기 Redis 세
 - **상태**: 완료
 - **기준 시점**: 2026-09-08, MariaDB 10.x 기준
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -984,6 +999,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP(렌더그래프) 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 컨퍼런스 세션 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -1258,6 +1274,7 @@ ACES/Reinhard처럼 곡선 모양이 고정된 톤매퍼에는 애초에 이런 
 - **상태**: 완료
 - **기준 시점**: 2026-09-09
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -1468,6 +1485,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -1635,6 +1653,7 @@ Blender/Unreal이 채택하며 주목받은 **AgX** 톤매퍼가 "고채도 색�
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP(렌더그래프) 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 컨퍼런스 세션 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -1777,6 +1796,7 @@ foreach (var mipRect in downsampleMipRects)
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP(렌더그래프) 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 컨퍼런스 세션 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -1976,6 +1996,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-10
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -2350,6 +2371,7 @@ sequenceDiagram
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project` (`RottenNoble-HttpServer`, `RottenNoble-TCPServer`와 인스턴스 공유)
+- **엔진**: `Web`
 
 ---
 
@@ -2516,6 +2538,7 @@ Redis를 새로 띄운다"는 이 프로젝트의 쓰임새는 실무 기준으�
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -2643,6 +2666,7 @@ RottenNobleProject가 Synology NAS를 프로덕션 서버로 고른 이유는 "�
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -2883,6 +2907,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -3033,6 +3058,7 @@ grep -r "https://rotten-noble.com" build/static/js/main.*.js
 - **상태**: 완료
 - **기준 시점**: 2026-09-10
 - **관련 레포지토리**: `RottenNoble-WatchSyncServer`
+- **엔진**: `Web`
 
 ---
 
@@ -3229,6 +3255,7 @@ DB에 저장해 조회·회전(rotation)·폐기할 수 있게 관리한다 — 
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -3413,6 +3440,7 @@ Transparent Data Encryption)**를 쓰는 경우도 많다 — MySQL/MariaDB의 I
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -3636,6 +3664,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -3806,6 +3835,7 @@ Token)가 사실상 표준이다. 최근 동향으로는 "JWT를 쓰되 만료 �
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -3990,6 +4020,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -4181,6 +4212,7 @@ rate limiting) 중 어느 것이 새 스택으로 넘어가고 어느 것이 유
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -4352,6 +4384,7 @@ Firewall)로 알려진 인젝션 패턴을 요청 단계에서 미리 차단, DB
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -4521,6 +4554,7 @@ export function authHeaders() {
 - **상태**: 완료
 - **기준 시점**: 2026-09-09, Unity 6 URP 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -4692,6 +4726,7 @@ float3 ApplyColorGradingLdr(float3 pixelColor, Texture3D lutTexture, SamplerStat
 - **상태**: 학습 중 (개별 셰이더 문서가 늘어날 때마다 계속 갱신)
 - **기준 시점**: 2026-09-09, Unity 6 URP 기준
 - **관련 레포지토리**: `-` (특정 프로젝트 코드가 아니라 순수 개념 학습)
+- **엔진**: `Unity`
 
 ---
 
@@ -4841,6 +4876,7 @@ URP에서 실제로 어느 셰이더에 어떻게 구워지는지는 이 카테�
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -5005,6 +5041,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 - **상태**: 완료
 - **기준 시점**: 2026-09-08, PHP 8.x 기준
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -5182,6 +5219,7 @@ send_json($posts);
 - **상태**: 완료
 - **기준 시점**: 2026-09-08, React 19 기준
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -5367,6 +5405,7 @@ TanStack Query 같은 라이브러리가 로딩/에러/캐싱 상태 관리를 �
 - **상태**: 완료
 - **기준 시점**: 2026-09-08, react-router-dom v7 기준
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -5523,6 +5562,7 @@ index.html로"라는 rewrite 규칙을 기본 설정이나 한 줄짜리 설정 
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -5745,6 +5785,7 @@ flowchart TD
 - **상태**: 완료
 - **기준 시점**: 2026-09-09
 - **관련 레포지토리**: `RottenNoble-Project`
+- **엔진**: `Web`
 
 ---
 
@@ -6071,17 +6112,24 @@ function renderMarkdown(src){
    문서 저장소 · 네비게이션
    StudyProject는 ComputerScience/{분야}/{주제}.md 카테고리 트리를 쓴다 —
    내장된 문서의 data-name(저장소 루트 기준 상대경로)에서 분야 폴더를 그룹으로 뽑는다.
-   두 가지 보기 방식을 지원한다: 기술 스택별(카테고리 폴더 기준)과 프로젝트별
-   (문서 메타 "관련 레포지토리" 필드 기준) — 같은 프로젝트의 문서가 여러 카테고리 폴더에
-   흩어져 있어 "이 프로젝트에서 뭘 배웠더라"를 한눈에 보기 어렵다는 문제를 프로젝트별 보기로 푼다.
+   세 가지 보기 방식을 지원한다: 기술 스택별(카테고리 폴더 기준) · 프로젝트별(문서 메타
+   "관련 레포지토리" 필드 기준) · 엔진별(문서 메타 "엔진" 필드 기준, DevelopPrompt의
+   Unity/Python/Web 분류를 그대로 따름) — 같은 프로젝트/엔진의 문서가 여러 카테고리 폴더에
+   흩어져 있어 "이 프로젝트/엔진에서 뭘 배웠더라"를 한눈에 보기 어렵다는 문제를 두 대안 보기로 푼다.
    ──────────────────────────────────────────────────────────── */
 const docs = [];   // {name, text}
 let navMode = 'category';
-try { navMode = localStorage.getItem('studyproject_nav_mode') || 'category'; } catch(e) {}
+try {
+  const stored = localStorage.getItem('studyproject_nav_mode');
+  if(stored === 'project' || stored === 'engine') navMode = stored;
+} catch(e) {}
 let activeDocName = null;
 
 const CATEGORY_ORDER = ['시작', 'Architecture', 'Graphics', 'URP_PostProcessing', 'Database', 'Infrastructure', 'Network', 'Security', 'WebDevelopment', '기타'];
 const NO_PROJECT_GROUP = '프로젝트 무관(일반 개념)';
+const NO_ENGINE_GROUP = '엔진 무관';
+// DevelopPrompt README.md "엔진 폴더" 절의 순서(Unity·Python·Web)를 그대로 따른다.
+const ENGINE_ORDER = ['시작', 'Unity', 'Python', 'Web', NO_ENGINE_GROUP];
 
 function groupOfCategory(d){
   if(/README/i.test(d.name)) return '시작';
@@ -6090,23 +6138,33 @@ function groupOfCategory(d){
   return '기타';
 }
 
-// 문서 메타 블록의 "- **관련 레포지토리**: `X`" 줄에서 저장소명만 뽑는다.
-// 괄호 안에 부가로 언급되는 다른 저장소(예: "`A` (`B`, `C`와 공유)")는 무시하고
-// 첫 백틱 값만 "이 문서의 주된 프로젝트"로 취급한다. 값이 `-`면 프로젝트 무관.
-function extractRepo(text){
-  const m = text.match(/\*\*관련\s*레포지토리\*\*\s*:\s*`([^`]+)`/);
+// 문서 메타 블록의 "- **{필드}**: `X`" 줄에서 값만 뽑는다. 괄호 안에 부가로 언급되는 다른 값
+// (예: "`A` (`B`, `C`와 공유)")은 무시하고 첫 백틱 값만 취급한다. 값이 `-`면 없는 것으로 본다.
+function extractMetaField(text, fieldName){
+  const re = new RegExp('\\*\\*' + fieldName + '\\*\\*\\s*:\\s*`([^`]+)`');
+  const m = text.match(re);
   if(!m) return null;
   const val = m[1].trim();
   return (!val || val === '-') ? null : val;
 }
+
+function extractRepo(text){ return extractMetaField(text, '관련\\s*레포지토리'); }
+function extractEngine(text){ return extractMetaField(text, '엔진'); }
 
 function groupOfProject(d){
   if(/README/i.test(d.name) || /_TEMPLATE/i.test(d.name)) return '시작';
   return extractRepo(d.text) || NO_PROJECT_GROUP;
 }
 
+function groupOfEngine(d){
+  if(/README/i.test(d.name) || /_TEMPLATE/i.test(d.name)) return '시작';
+  return extractEngine(d.text) || NO_ENGINE_GROUP;
+}
+
 function currentGroupOf(d){
-  return navMode === 'project' ? groupOfProject(d) : groupOfCategory(d);
+  if(navMode === 'project') return groupOfProject(d);
+  if(navMode === 'engine') return groupOfEngine(d);
+  return groupOfCategory(d);
 }
 
 function categoryRank(g){
@@ -6122,18 +6180,32 @@ function projectRank(g){
   return 0;
 }
 
+// 엔진별 보기는 값의 가짓수가 적고 고정돼 있어(Unity/Python/Web) 알파벳순 대신
+// ENGINE_ORDER 고정 순서를 쓴다 — 목록에 없는 값(오타 등)은 맨 뒤로 보낸다.
+function engineRank(g){
+  const idx = ENGINE_ORDER.indexOf(g);
+  return idx === -1 ? ENGINE_ORDER.length : idx;
+}
+
 function labelOf(d){
   // "ComputerScience/Network/CORS.md" → "CORS", 루트 파일은 확장자만 뗀다
   const base = d.name.split('/').pop();
   return base.replace(/\.md$/i,'');
 }
 
+function rankOf(g){
+  if(navMode === 'project') return projectRank(g);
+  if(navMode === 'engine') return engineRank(g);
+  return categoryRank(g);
+}
+
 function sortDocs(){
   docs.sort((a,b)=>{
     const ga = currentGroupOf(a), gb = currentGroupOf(b);
-    const ra = navMode === 'project' ? projectRank(ga) : categoryRank(ga);
-    const rb = navMode === 'project' ? projectRank(gb) : categoryRank(gb);
+    const ra = rankOf(ga), rb = rankOf(gb);
     if(ra !== rb) return ra - rb;
+    // 프로젝트별 보기만 그룹명이 임의 문자열이라 같은 rank(0)를 여럿이 공유한다 — 그룹명으로
+    // 먼저 갈라야 한다. 카테고리별/엔진별은 rank 자체가 이미 그룹 순서를 완전히 정하므로 불필요.
     if(navMode === 'project' && ga !== gb) return ga.localeCompare(gb, 'en');
     return labelOf(a).localeCompare(labelOf(b), 'en');
   });
@@ -6282,9 +6354,9 @@ if(window.mermaid && !window.__noMermaid){
 })();
 
 /* 이 엔진은 DevelopPrompt/VIEWER의 것을 기반으로 한다(ComputerScience/{분야} 카테고리 그룹핑 +
-   기술 스택별/프로젝트별 보기 토글은 이 저장소만의 확장 — "관련 레포지토리" 메타 필드가
-   DevelopPrompt 쪽 문서 컨벤션에는 없어서 그대로 역이식하지 않는다). file:// 로 열었을 때
-   문서가 안 보이면 DOCS_BUNDLE.html(내장 번들)을 대신 여세요 — README 참고. */
+   기술 스택별/프로젝트별/엔진별 3-way 보기 토글은 이 저장소만의 확장 — "관련 레포지토리"·"엔진"
+   메타 필드가 DevelopPrompt 쪽 문서 컨벤션에는 없어서 그대로 역이식하지 않는다). file:// 로
+   열었을 때 문서가 안 보이면 DOCS_BUNDLE.html(내장 번들)을 대신 여세요 — README 참고. */
 </script>
 </body>
 </html>

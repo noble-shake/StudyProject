@@ -6,6 +6,7 @@
 - **상태**: 완료
 - **기준 시점**: 2026-09-08
 - **관련 레포지토리**: `RottenNoble-Project` (`RottenNoble-HttpServer`, `RottenNoble-TCPServer`와 인스턴스 공유)
+- **엔진**: `Web`
 
 ---
 
