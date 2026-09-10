@@ -98,6 +98,9 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 배포 인프라 | Synology NAS — 프런트/구 PHP는 Web Station, 새 Spring 백엔드는 Docker 컨테이너 + `api.rotten-noble.com` 서브도메인(리버스 프록시가 경로 라우팅 미지원) | [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md), [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) |
 | 요청 제한 | Redis 기반 IP별 rate limiting — Spring `@RateLimit`+인터셉터로 이식, 프로덕션 검증됨 | [Rate Limiting](../Security/Rate-Limiting.md) |
 | 개인정보 저장 | **암호화 없음(회귀)** — PHP 시절 AES-256-GCM이 새 Spring 백엔드엔 이식 안 됨 | [저장 데이터 암호화](../Security/Encryption-at-Rest.md) |
+| 배포 자동화 | GitHub Actions self-hosted 러너(NAS 위 Docker) — `develop` push마다 자동 빌드+배포 | [GitHub Actions](../Infrastructure/GitHub-Actions.md) |
+| 배경 연출 | WebGL/GLSL 절차적 셰이더(fBm 노이즈 기반 성운+별) — 홈은 선명하게, 다른 라우트는 `backdrop-filter` 블러 | [절차적 배경 셰이더](../Graphics/Procedural-Noise-Shaders.md) |
+| 로컬 검증 | 스테이징 환경 없음 — Playwright 헤드리스 스크린샷으로 배포 전 화면 확인 | [Playwright 로컬 검증](../WebDevelopment/Playwright-Local-Verification.md) |
 
 ## 특이할 점
 
@@ -130,13 +133,15 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
    백엔드는 파일 하나가 엔드포인트 하나, 프런트는 페이지 폴더 하나가 라우트 하나 — 서로 다른
    언어인데 구조적 철학이 같다. 두 계층을 서로 다른 세션에서 배웠는데도 나중에 보니 같은
    패턴이었다는 게 이 저장소를 순서대로 훑는 재미이기도 하다.
-6. **실제 배포 상태가 이 저장소의 git 히스토리보다 앞서 있다.** 2026-09-09 기준, 프로덕션에
-   떠 있는 Spring Boot+Vite 코드는 브랜치 `rewrite/spring-boot-vite`에만 존재하고
-   `develop`/`main`엔 아직 머지되지 않았으며 그 브랜치용 PR조차 없다 — 반면 그 이전에 이 스택
-   전환을 시도했던 PR #2·#3(같은 목표, 다른 구현)는 머지 없이 close됐다. 저장소를 git 로그만
-   보고 파악하면 "아직 PHP를 쓰고 있다"고 착각하기 쉽다 — 개인 프로젝트에서 "일단 빨리 배포해
-   두고 PR/머지는 나중에"라는 흐름이 git 상태를 실제 운영 상태의 신뢰할 만한 스냅샷이 아니게
-   만들 수 있다는 걸 보여주는 사례다.
+6. **(2026-09-10 정정) git 히스토리가 실제 배포 상태를 따라잡았다 — 그리고 그 자체가
+   GitHub Actions 자동화 덕분이다.** 2026-09-09까지는 바로 위에서 지적한 대로 "실제 배포가
+   git보다 앞서있는" 상태였지만, 그 다음 날 self-hosted 러너 기반 GitHub Actions 파이프라인이
+   갖춰지면서 `develop`이 실제 배포 상태로 fast-forward됐고, 그 뒤로는 `develop`에 머지되는
+   순간 곧바로 그게 라이브라는 등식이 성립하게 됐다([GitHub Actions](../Infrastructure/GitHub-Actions.md)).
+   역설적으로 이 등식 때문에 "머지 = 배포"라는 새로운 위험이 생겼다 — 스테이징 게이트가 없어서
+   PR을 머지하기 전 로컬 빌드 확인이 사실상 필수가 됐다([Playwright 로컬 검증](../WebDevelopment/Playwright-Local-Verification.md)).
+   한 저장소 안에서 "git과 배포가 어긋나는 문제"와 "그 어긋남을 자동화로 없앴더니 스테이징
+   부재라는 다른 위험이 남더라"라는 두 단계를 연달아 관찰할 수 있었던 사례다.
 
 ## 같이 보기 (문서 전체 지도)
 
@@ -149,6 +154,8 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 - [React](../WebDevelopment/React.md) · [React Router](../WebDevelopment/React-Router.md) · [CRA → Vite](../WebDevelopment/CRA-vs-Vite.md) — 프런트엔드
 - [Spring Boot](../WebDevelopment/Spring-Boot.md) — 완료·배포된 백엔드 전환
 - [자체 호스팅 vs 클라우드](../Infrastructure/Self-Hosting-vs-Cloud.md) · [HTTPS & Mixed Content](../Network/HTTPS-and-Mixed-Content.md) — 인프라
+- [GitHub Actions](../Infrastructure/GitHub-Actions.md) — `develop` push 자동 배포 파이프라인
+- [절차적 배경 셰이더](../Graphics/Procedural-Noise-Shaders.md) · [Playwright 로컬 검증](../WebDevelopment/Playwright-Local-Verification.md) — 홈 화면 배경과 그 검증 방법
 
 ## 참고자료
 
@@ -165,3 +172,4 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 | 2026-09-08 | CORS/rate limiting/암호화 반영 | 실제 스캔/프로빙 대응으로 추가된 방어 심층화를 기술 스택 표·특이할 점에 갱신 |
 | 2026-09-08 | PHP → Spring Boot 전환 시작 안내 추가 | 시니어 리뷰 이후 백엔드 전면 교체 결정 — `server/` 모듈 신설(PR #3), 세부 내용은 `Spring-Boot.md`로 분리 |
 | 2026-09-09 | 전환 완료·프로덕션 배포로 갱신(기술 스택 표, 특이할 점, 아키텍처 다이어그램 주석) — git/실배포 상태 불일치, CORS/암호화 회귀 기록 | PR #2·#3는 머지 없이 close, 다른 세션이 `rewrite/spring-boot-vite`로 재구현·배포 완료 |
+| 2026-09-10 | GitHub Actions 자동 배포, 홈 배경 셰이더, Playwright 로컬 검증을 기술 스택 표·같이 보기에 추가. "특이할 점" #6을 git/배포 어긋남 → 어긋남이 자동화로 해소되고 스테이징 부재라는 새 위험이 남은 상태로 정정 | 해당 세션 작업을 정리하며 이 문서가 낡은 부분(#6)을 발견 |
