@@ -150,6 +150,8 @@ Token)가 사실상 표준이다. 최근 동향으로는 "JWT를 쓰되 만료 �
 
 - [Redis](../Infrastructure/Redis.md) — 이 프로젝트가 세션을 저장하는 실제 구현체
 - [PHP](../WebDevelopment/PHP.md) — `password_verify`, `require_admin()` 등 인증 로직이 구현된 언어
+- [고정 API 키 인증](./API-Key-Authentication.md) — "로그인이 있는 시스템"을 전제하는 이 두 방식과
+  달리, 정해진 소수의 클라이언트만 확인하면 되는 경우의 더 단순한 대안
 
 ## 참고자료
 
