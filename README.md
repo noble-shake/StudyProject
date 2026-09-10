@@ -13,9 +13,16 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 저장소 루트의 [`build_bundle.cmd`](build_bundle.cmd)를 더블클릭하면 이 저장소의 모든 `.md`
 문서를 한 번에 내장한 `DOCS_BUNDLE.html`이 생성됩니다 — 그 파일 하나만 더블클릭해서 열면 사이드바
-탐색(카테고리별 그룹) + 검색이 되는 문서 뷰어로 전부 읽을 수 있습니다(`DevelopPrompt/VIEWER`와
-같은 엔진을 그대로 재사용, 자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은
-파생물이라 `.md`가 원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
+탐색 + 검색이 되는 문서 뷰어로 전부 읽을 수 있습니다(`DevelopPrompt/VIEWER`를 기반으로 한 엔진,
+자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은 파생물이라 `.md`가
+원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
+
+사이드바 위쪽의 **기술 스택별 / 프로젝트별** 토글로 탐색 축을 바꿀 수 있습니다 — 기술 스택별은
+지금까지의 `ComputerScience/{분야}` 카테고리 그룹(기본값), 프로젝트별은 문서 메타의 "관련
+레포지토리" 필드를 기준으로 같은 프로젝트에서 나온 문서를 전부 한 그룹으로 모읍니다(예:
+`RottenNoble-Project`에서 나온 문서 20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져
+있는데, 프로젝트별 보기에서는 한 그룹으로 보임). 새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련
+레포지토리" 필드를 정확히 채워야 이 보기가 제대로 동작합니다.
 
 ## 구조
 

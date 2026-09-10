@@ -48,6 +48,16 @@
     letter-spacing:.01em; padding-bottom:10px; border-bottom:2px solid var(--accent);
   }
   aside .sub{font-size:12px; color:var(--muted); margin:8px 0 16px; line-height:1.5}
+  .viewmode{
+    display:flex; gap:2px; margin-bottom:10px; padding:2px;
+    background:var(--bg); border:1px solid var(--line); border-radius:7px;
+  }
+  .modebtn{
+    flex:1; padding:6px 4px; font:inherit; font-size:12px; font-weight:600;
+    background:none; border:0; border-radius:5px; color:var(--muted); cursor:pointer;
+  }
+  .modebtn:hover{color:var(--fg)}
+  .modebtn.active{background:var(--accent); color:var(--accent-fg)}
   #search{
     width:100%; padding:7px 9px; margin-bottom:10px; font-size:13px; font-family:var(--font-body);
     background:var(--bg); color:var(--fg); border:1px solid var(--line); border-radius:6px;
@@ -126,6 +136,10 @@
   <aside>
     <h1>StudyProject</h1>
     <p class="sub">Study with DevelopPrompt</p>
+    <div class="viewmode" role="tablist" aria-label="보기 방식">
+      <button type="button" class="modebtn active" data-mode="category" role="tab" aria-selected="true">기술 스택별</button>
+      <button type="button" class="modebtn" data-mode="project" role="tab" aria-selected="false">프로젝트별</button>
+    </div>
     <input id="search" type="search" placeholder="문서 검색…" autocomplete="off">
     <nav id="nav"></nav>
     <div id="loader">
@@ -162,9 +176,16 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 저장소 루트의 [`build_bundle.cmd`](build_bundle.cmd)를 더블클릭하면 이 저장소의 모든 `.md`
 문서를 한 번에 내장한 `DOCS_BUNDLE.html`이 생성됩니다 — 그 파일 하나만 더블클릭해서 열면 사이드바
-탐색(카테고리별 그룹) + 검색이 되는 문서 뷰어로 전부 읽을 수 있습니다(`DevelopPrompt/VIEWER`와
-같은 엔진을 그대로 재사용, 자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은
-파생물이라 `.md`가 원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
+탐색 + 검색이 되는 문서 뷰어로 전부 읽을 수 있습니다(`DevelopPrompt/VIEWER`를 기반으로 한 엔진,
+자세한 건 [`VIEWER/README.md`](VIEWER/README.md)). `DOCS_BUNDLE.html`은 파생물이라 `.md`가
+원본이고, 문서를 고치면 다시 만들어야 최신 내용이 반영됩니다.
+
+사이드바 위쪽의 **기술 스택별 / 프로젝트별** 토글로 탐색 축을 바꿀 수 있습니다 — 기술 스택별은
+지금까지의 `ComputerScience/{분야}` 카테고리 그룹(기본값), 프로젝트별은 문서 메타의 "관련
+레포지토리" 필드를 기준으로 같은 프로젝트에서 나온 문서를 전부 한 그룹으로 모읍니다(예:
+`RottenNoble-Project`에서 나온 문서 20여 개가 지금은 Security/Network/WebDevelopment 등에 흩어져
+있는데, 프로젝트별 보기에서는 한 그룹으로 보임). 새 주제 문서를 쓸 때 `_TEMPLATE.md`의 "관련
+레포지토리" 필드를 정확히 채워야 이 보기가 제대로 동작합니다.
 
 ## 구조
 
@@ -575,6 +596,15 @@ auth.js (localStorage 토큰)         auth.php (require_admin 가드)
 </script>
 <script type="text/markdown" data-name="ComputerScience/Architecture/RottenNobleProject-Architecture.md">
 # RottenNobleProject 아키텍처 이해하기
+
+---
+
+- **카테고리**: 웹 개발, 아키텍처
+- **상태**: 완료 — 1~3회차로 종료, 개별 주제 문서로 이어짐
+- **기준 시점**: 2026-09-08
+- **관련 레포지토리**: `RottenNoble-Project`
+
+---
 
 > 진행 상태: **완료** — 이 세션 일지(1~3회차)로 코드 구조를 다 훑었고, 여기서 나온 각 기술은
 > 독립된 주제 문서로 분리해 정리했다. 전체 그림은
@@ -6041,21 +6071,55 @@ function renderMarkdown(src){
    문서 저장소 · 네비게이션
    StudyProject는 ComputerScience/{분야}/{주제}.md 카테고리 트리를 쓴다 —
    내장된 문서의 data-name(저장소 루트 기준 상대경로)에서 분야 폴더를 그룹으로 뽑는다.
+   두 가지 보기 방식을 지원한다: 기술 스택별(카테고리 폴더 기준)과 프로젝트별
+   (문서 메타 "관련 레포지토리" 필드 기준) — 같은 프로젝트의 문서가 여러 카테고리 폴더에
+   흩어져 있어 "이 프로젝트에서 뭘 배웠더라"를 한눈에 보기 어렵다는 문제를 프로젝트별 보기로 푼다.
    ──────────────────────────────────────────────────────────── */
 const docs = [];   // {name, text}
+let navMode = 'category';
+try { navMode = localStorage.getItem('studyproject_nav_mode') || 'category'; } catch(e) {}
+let activeDocName = null;
 
-const GROUP_ORDER = ['시작', 'Architecture', 'Graphics', 'URP_PostProcessing', 'Database', 'Infrastructure', 'Network', 'Security', 'WebDevelopment', '기타'];
+const CATEGORY_ORDER = ['시작', 'Architecture', 'Graphics', 'URP_PostProcessing', 'Database', 'Infrastructure', 'Network', 'Security', 'WebDevelopment', '기타'];
+const NO_PROJECT_GROUP = '프로젝트 무관(일반 개념)';
 
-function groupOf(name){
-  if(/README/i.test(name)) return '시작';
-  const m = name.match(/^ComputerScience\/([^/]+)\//);
+function groupOfCategory(d){
+  if(/README/i.test(d.name)) return '시작';
+  const m = d.name.match(/^ComputerScience\/([^/]+)\//);
   if(m) return m[1];
   return '기타';
 }
 
-function groupRank(g){
-  const idx = GROUP_ORDER.indexOf(g);
-  return idx === -1 ? GROUP_ORDER.length : idx;
+// 문서 메타 블록의 "- **관련 레포지토리**: `X`" 줄에서 저장소명만 뽑는다.
+// 괄호 안에 부가로 언급되는 다른 저장소(예: "`A` (`B`, `C`와 공유)")는 무시하고
+// 첫 백틱 값만 "이 문서의 주된 프로젝트"로 취급한다. 값이 `-`면 프로젝트 무관.
+function extractRepo(text){
+  const m = text.match(/\*\*관련\s*레포지토리\*\*\s*:\s*`([^`]+)`/);
+  if(!m) return null;
+  const val = m[1].trim();
+  return (!val || val === '-') ? null : val;
+}
+
+function groupOfProject(d){
+  if(/README/i.test(d.name) || /_TEMPLATE/i.test(d.name)) return '시작';
+  return extractRepo(d.text) || NO_PROJECT_GROUP;
+}
+
+function currentGroupOf(d){
+  return navMode === 'project' ? groupOfProject(d) : groupOfCategory(d);
+}
+
+function categoryRank(g){
+  const idx = CATEGORY_ORDER.indexOf(g);
+  return idx === -1 ? CATEGORY_ORDER.length : idx;
+}
+
+// 프로젝트별 보기는 그룹이 미리 정해져 있지 않다 — "시작"을 맨 앞, "프로젝트 무관"을 맨 뒤로
+// 고정하고 나머지 프로젝트명은 알파벳순(같은 그룹이면 0, 그다음 group localeCompare로 정렬)으로 둔다.
+function projectRank(g){
+  if(g === '시작') return -1;
+  if(g === NO_PROJECT_GROUP) return 1;
+  return 0;
 }
 
 function labelOf(d){
@@ -6066,8 +6130,11 @@ function labelOf(d){
 
 function sortDocs(){
   docs.sort((a,b)=>{
-    const ga = groupRank(groupOf(a.name)), gb = groupRank(groupOf(b.name));
-    if(ga !== gb) return ga - gb;
+    const ga = currentGroupOf(a), gb = currentGroupOf(b);
+    const ra = navMode === 'project' ? projectRank(ga) : categoryRank(ga);
+    const rb = navMode === 'project' ? projectRank(gb) : categoryRank(gb);
+    if(ra !== rb) return ra - rb;
+    if(navMode === 'project' && ga !== gb) return ga.localeCompare(gb, 'en');
     return labelOf(a).localeCompare(labelOf(b), 'en');
   });
 }
@@ -6079,7 +6146,7 @@ function buildNav(activeName){
   docs.forEach(d => {
     // .flow.md 별첨 파일은 사이드바에 따로 안 두고, 본문 안 링크로만 이동한다
     if(/\.flow\.md$/i.test(d.name)) return;
-    const g = groupOf(d.name);
+    const g = currentGroupOf(d);
     if(g !== lastGroup){
       const h = document.createElement('div');
       h.className = 'navgroup'; h.textContent = g;
@@ -6095,9 +6162,28 @@ function buildNav(activeName){
   applyFilter();
 }
 
+document.querySelectorAll('.modebtn').forEach(btn => {
+  if(btn.dataset.mode === navMode) btn.classList.add('active');
+  else btn.classList.remove('active');
+  btn.setAttribute('aria-selected', String(btn.dataset.mode === navMode));
+  btn.addEventListener('click', () => {
+    if(btn.dataset.mode === navMode) return;
+    navMode = btn.dataset.mode;
+    try { localStorage.setItem('studyproject_nav_mode', navMode); } catch(e) {}
+    document.querySelectorAll('.modebtn').forEach(b => {
+      const on = b === btn;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-selected', String(on));
+    });
+    sortDocs();
+    buildNav(activeDocName);
+  });
+});
+
 function show(name){
   const doc = docs.find(d => d.name === name);
   if(!doc) return;
+  activeDocName = name;
   const main = document.getElementById('main');
   main.innerHTML =
     '<article class="md">' + renderMarkdown(doc.text) + '</article>' +
@@ -6195,9 +6281,10 @@ if(window.mermaid && !window.__noMermaid){
   document.getElementById('loader').style.display = 'none';
 })();
 
-/* 이 엔진은 DevelopPrompt/VIEWER의 것을 그대로 재사용한다(ComputerScience/{분야} 카테고리
-   그룹핑만 추가). file:// 로 열었을 때 문서가 안 보이면 DOCS_BUNDLE.html(내장 번들)을 대신
-   여세요 — README 참고. */
+/* 이 엔진은 DevelopPrompt/VIEWER의 것을 기반으로 한다(ComputerScience/{분야} 카테고리 그룹핑 +
+   기술 스택별/프로젝트별 보기 토글은 이 저장소만의 확장 — "관련 레포지토리" 메타 필드가
+   DevelopPrompt 쪽 문서 컨벤션에는 없어서 그대로 역이식하지 않는다). file:// 로 열었을 때
+   문서가 안 보이면 DOCS_BUNDLE.html(내장 번들)을 대신 여세요 — README 참고. */
 </script>
 </body>
 </html>
