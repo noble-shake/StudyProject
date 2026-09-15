@@ -98,6 +98,20 @@ ComputerScience/
 | [프런트엔드 코드 노출 (JS 난독화)](ComputerScience/Security/Frontend-Code-Exposure.md) | RottenNobleProject · (시니어 리뷰, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [방문자 Analytics (Mixpanel/BI 툴과 비교)](ComputerScience/WebDevelopment/Visitor-Analytics.md) | RottenNobleProject · `STUDY-03` | `RottenNoble-Project` | 완료 |
 
+### Unity ECS
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| **[Unity ECS 학습 지도](ComputerScience/UnityECS/README.md)** | TD_Project `STUDY-01`~`STUDY-03` | `TD_Project` | 학습 중 |
+| [Entity, Component, System](ComputerScience/UnityECS/Entity-Component-System.md) | TD_Project `STUDY-01` | `TD_Project` | 학습 중 |
+| [System과 프레임 생명주기](ComputerScience/UnityECS/System-Lifecycle.md) | TD_Project `STUDY-02` | `TD_Project` | 학습 중 |
+| [ECS와 Unity 렌더 파이프라인](ComputerScience/UnityECS/ECS-Render-Pipeline.md) | ECS Graphics 검증 | `TD_Project` | 학습 중 |
+| [DynamicBuffer 패턴](ComputerScience/UnityECS/DynamicBuffer-Patterns.md) | 전투 데이터 설계 | `TD_Project` | 학습 중 |
+| [Job, Burst, 의존성](ComputerScience/UnityECS/Jobs-Burst-Dependencies.md) | 대량 simulation 설계 | `TD_Project` | 학습 중 |
+| [SubScene과 씬 스트리밍](ComputerScience/UnityECS/SubScene-Streaming.md) | Patch preload 설계 | `TD_Project` | 학습 중 |
+| [Authoring, Baker, ScriptableObject](ComputerScience/UnityECS/Baking-ScriptableObject.md) | Spawn SO bake 설계 | `TD_Project` | 학습 중 |
+| [Spawner, Pool, Warm-up](ComputerScience/UnityECS/Spawner-Pooling-Warmup.md) | Patch warm-up 설계 | `TD_Project` | 학습 중 |
+
 ### TD_Project (Unity ECS 학습)
 
 | 주제 | 출처(프로젝트 · STUDY-nn) | 관련 레포지토리 | 상태 |
