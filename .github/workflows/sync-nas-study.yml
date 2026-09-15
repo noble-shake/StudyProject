@@ -22,6 +22,7 @@ jobs:
 
           study_dir=/volume1/docker/StudyProject
           test -d "$study_dir/.git"
+          git config --global --add safe.directory "$study_dir"
           test "$(git -C "$study_dir" branch --show-current)" = "main"
 
           git -C "$study_dir" fetch --quiet origin main
