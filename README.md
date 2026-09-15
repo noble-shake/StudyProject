@@ -97,6 +97,13 @@ ComputerScience/
 | [SQL Injection](ComputerScience/Security/SQL-Injection.md) | RottenNobleProject · (시니어 리뷰 + 실제 스캔 사건, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 | [프런트엔드 코드 노출 (JS 난독화)](ComputerScience/Security/Frontend-Code-Exposure.md) | RottenNobleProject · (시니어 리뷰, STUDY-nn 아님) | `RottenNoble-Project` | 완료 |
 
+### TD_Project (Unity ECS 학습)
+
+| 주제 | 출처(프로젝트 · STUDY-nn) | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| **[TD_Project 저장소 개요와 ECS 코어 루프](ComputerScience/Architecture/TD_Project.md)** | TD_Project · `STUDY-01`, `STUDY-02` | `TD_Project` | 학습 중 |
+| [ECS Warm-up — Addressables에서 Entity Pool까지](ComputerScience/Architecture/TD_Project-ECS-Warmup.md) | TD_Project · `STUDY-03` | `TD_Project` | 학습 중 |
+
 ### 그래픽스 (특정 프로젝트 종속 없음)
 
 | 주제 | 출처 | 관련 레포지토리 | 상태 |
