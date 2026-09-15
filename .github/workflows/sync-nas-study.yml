@@ -1,0 +1,32 @@
+name: Sync StudyProject to NAS
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'ComputerScience/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync-study-project:
+    runs-on: [self-hosted, nas]
+
+    steps:
+      - name: Fast-forward NAS StudyProject checkout
+        shell: sh
+        run: |
+          set -eu
+
+          study_dir=/volume1/docker/StudyProject
+          test -d "$study_dir/.git"
+          test "$(git -C "$study_dir" branch --show-current)" = "main"
+
+          git -C "$study_dir" fetch --quiet origin main
+          git -C "$study_dir" merge --ff-only origin/main
+
+          test -f "$study_dir/ComputerScience/Architecture/TD_Project.md"
+          test -f "$study_dir/ComputerScience/Architecture/TD_Project-ECS-Warmup.md"
+          git -C "$study_dir" log -1 --oneline
