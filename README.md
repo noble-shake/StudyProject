@@ -112,6 +112,12 @@ ComputerScience/
 | [Authoring, Baker, ScriptableObject](ComputerScience/UnityECS/Baking-ScriptableObject.md) | Spawn SO bake 설계 | `TD_Project` | 학습 중 |
 | [Spawner, Pool, Warm-up](ComputerScience/UnityECS/Spawner-Pooling-Warmup.md) | Patch warm-up 설계 | `TD_Project` | 학습 중 |
 
+### 인프라
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| [StudyProject NAS 동기화 GitHub Actions](ComputerScience/Infrastructure/StudyProject-NAS-Sync.md) | 문서 자동 반영 구성 | `StudyProject`, `RottenNoble-Project` | 학습 중 |
+
 ### TD_Project (Unity ECS 학습)
 
 | 주제 | 출처(프로젝트 · STUDY-nn) | 관련 레포지토리 | 상태 |
