@@ -103,118 +103,12 @@ URP의 손으로 짠(hand-written HLSL, ShaderGraph 아님) 셰이더가 이 경
 복제"인데, 이건 정확히 batching을 깨뜨려서 Entities Graphics를 쓰는 의미를 없앤다 — draw
 call이 다시 개체 수만큼 늘어난다.
 
-### 다른 프레임워크의 접근 — Latios Framework의 LifeFX
+### 다른 프레임워크는 이 문제를 어떻게 푸나
 
-같은 문제("ECS 개체별 데이터를 어떻게 GPU 렌더링 쪽에 전달하나")를 다르게 푸는 프레임워크가
-있는지 비교해보면 우리 선택의 위치를 더 잘 이해할 수 있다. Latios Framework(Dreaming381의
-개인 Unity DOTS 프레임워크, `github.com/Dreaming381/Latios-Framework`)는 Kinemation(애니메이션/
-메쉬 최적화), Calligraphics(월드스페이스 텍스트), LifeFX(대규모 VFX) 등의 모듈로 구성되는데,
-**전용 2D 스프라이트 렌더링 모듈은 없다.**
-
-가장 가까운 모듈은 LifeFX다. 공식 설명은 다음과 같다.
-
-> "provides VFX solutions at ECS scales using an intelligent graphics buffer management
-> pipeline" — "an out-of-the-box solution for sending ECS event payloads to VFX Graph via
-> graphics buffers, as well as synchronizing entity transforms with the GPU" — "a single
-> VFX Graph instance can support thousands of entities."
-
-즉 LifeFX는 이 문서 위쪽에서 설명한 "DOTS Instancing으로 개체별 Material Property 넘기기"와
-**목적은 같지만 방법이 다르다.**
-
-| | 이 문서의 DOTS Instancing 방식 | Latios LifeFX |
-|---|---|---|
-| 개체별 데이터 전달 경로 | 커스텀 HLSL 셰이더에 `UNITY_DOTS_INSTANCING_START` 매크로 직접 작성 | ECS 이벤트를 GraphicsBuffer로 Unity **VFX Graph**에 전달 |
-| 렌더링 주체 | Material + 손으로 짠 URP 셰이더 | VFX Graph 에셋(비주얼 스크립팅) |
-| 텍스처 시트/프레임 애니메이션 | 셰이더 코드에서 직접 UV 계산 | VFX Graph 내장 Flipbook 노드 |
-| 커스텀 라이팅 모델 제어 | 셰이더 코드를 직접 고치면 됨(예: 스펙큘러/프레넬 빼기) | VFX Graph의 출력 셰이더 그래프 쪽에서 별도로 맞춰야 함 |
-| 확장 규모 | Material 하나 기준, 배치는 Entities Graphics가 처리 | "VFX Graph 인스턴스 하나로 수천 개체" — 파티클 스케일 전제 |
-
-두 방식 다 "Material을 개체 수만큼 복제하지 않는다"는 목표는 같지만, DOTS Instancing 직접
-구현은 셰이더 코드 전체를 손으로 통제할 수 있는 대신 보일러플레이트가 필요하고, LifeFX는
-VFX Graph의 기성 기능(플립북, 파티클 스케일 최적화)을 공짜로 얻는 대신 커스텀 라이팅
-로직은 VFX Graph의 셰이더 그래프 안에서 다시 구성해야 한다. 셀 스타일처럼 라이팅 모델
-자체를 세밀하게 통제해야 하는 경우, 코드로 완전히 열려 있는 DOTS Instancing 직접 구현
-쪽이 오히려 더 다루기 쉬울 수 있다.
-
-### 다른 프레임워크의 접근 — NSprites (전용 2D 스프라이트 ECS 프레임워크)
-
-Latios가 2D 전용 모듈이 없는 것과 달리, `Antoshidza/NSprites`(+ `NSprites-Foundation`)는 처음부터
-Unity Entities와 함께 쓰는 **전용 2D 스프라이트 렌더링 프레임워크**다. 이 문서의 "DOTS
-Instancing으로 개체별 Material Property 넘기기"와 목적은 완전히 같지만, 경로가 근본적으로
-다르다 — **Entities Graphics/BatchRendererGroup을 아예 쓰지 않는다.**
-
-> "sync registered entity components with ComputeBuffers to send data to GPU and then
-> renders entities with Graphics.DrawMeshInstancedProcedural"
-
-즉 개체 컴포넌트 값을 직접 `ComputeBuffer`로 올리고, 셰이더에서는 `StructuredBuffer`를
-인스턴스 ID로 인덱싱해서 읽는다.
-
-```hlsl
-StructuredBuffer<int> _propertyPointers;
-StructuredBuffer<float4> _color;
-
-Varyings UnlitVertex(Attributes attributes, uint instanceID : SV_InstanceID)
-{
-    int propPointer = _propertyPointers[instanceID];
-    float4 color = _color[propPointer];
-}
-```
-
-`_propertyPointers`로 한 번 더 간접 참조하는 이유는(인스턴스 ID를 버퍼 인덱스에 직접 매핑하지
-않는 것) 엔티티가 파괴/재사용될 때 버퍼 전체를 재정렬하지 않고 포인터만 갱신하기 위해서로
-보인다 — 우리가 `Disabled` 태그로 풀링하며 Entity Index 자체는 안정적으로 유지하는 것과 다른
-방식으로 같은 "재사용 시 데이터 정합성" 문제를 푼다.
-
-Foundation 확장 패키지는 이 기반 위에 2D 게임에 특화된 시스템을 얹는다.
-
-- **애니메이션**: "Shifts UV values to simulate sprite animation" — 이 문서의 `GetFrameUV`와
-  목적이 같은 플립북 UV 시프트.
-- **정렬(Sorting)**: "Calculate SortingValue depending on 2D position to use in shader" —
-  Z-버퍼 깊이 대신 2D 위치로 그리기 순서를 계산한다.
-- **컬링**: 2D 위치 기준 카메라 컬링(기본 비활성 — 성능 트레이드오프상 옵트인).
-
-| | 이 문서의 DOTS Instancing 방식 | NSprites |
-|---|---|---|
-| 렌더 경로 | Entities Graphics가 자동 배치 | `Graphics.DrawMeshInstancedProcedural` 직접 호출 |
-| 개체별 데이터 전달 | DOTS Instancing 매크로 | `ComputeBuffer`/`StructuredBuffer` 직접 관리 + 포인터 간접 참조 |
-| 그리기 순서 | 표준 Z-버퍼 깊이 정렬(Opaque) | 2D 위치 기반 수동 정렬 |
-| 필요한 인프라 | Entities Graphics가 배치·컬링 담당 | 등록·용량 관리·정렬·컬링을 직접 구현 |
-
-**TD_Project에 실제로 적용해보면**: NSprites가 2D 위치 정렬을 따로 만든 이유는 보통 "투명
-스프라이트가 겹칠 때 Z-버퍼만으론 그리기 순서가 안 맞는" 순수 2D(카메라와 같은 평면에 깔린
-스프라이트 다수) 게임의 문제다. TD_Project는 `MEMO-ACTOR-09`처럼 실제 3D 좌표계를 쓰고
-`EnemyShader`의 Quad도 현재 Opaque(Z-write 켜짐)라서, 표준 Z-버퍼 정렬이 이미 올바르게
-동작한다 — 지금 시점엔 이 문제 자체가 없다. 다만 그린스크린 알파 블렌딩을 붙여서 Enemy Quad가
-반투명(Transparent 큐)으로 바뀌면, 겹치는 스프라이트의 그리기 순서가 카메라 거리 기준
-근사 정렬로만 처리돼 부정확해질 수 있다 — 그 시점에 이 NSprites 정렬 패턴을 다시 참고할 만하다.
-
-#### 성능 관점 — "다른 선택"이 아니라 "그 시절엔 없었던 선택지"
-
-NSprites 저장소는 **2022-03**에 만들어졌다(최근까지 유지보수는 되고 있음, 마지막 커밋
-2025-06). 이 시점은 Unity Entities가 1.0 정식 출시 전, Hybrid Renderer/초기 Entities
-Graphics가 아직 미숙하던 때다. `ComputeBuffer` + `Graphics.DrawMeshInstancedProcedural`를
-직접 관리하는 선택은 "Entities Graphics보다 낫다고 판단해서"가 아니라, **당시엔 대량
-인스턴싱을 할 다른 실용적인 방법이 없었기 때문**일 가능성이 크다.
-
-- 옛 `Graphics.DrawMeshInstanced`(상수 버퍼 배열 기반)는 인스턴스당 1023개 한도가 있었다.
-  `DrawMeshInstancedProcedural` + `ComputeBuffer`는 이 한도를 피하는 사실상 유일한
-  우회로였다.
-- 당시엔 지금의 **GPU Resident Drawer**(Unity 6/URP가 BatchRendererGroup 인스턴스 데이터를
-  GPU에 상주시키고 컬링·배치까지 GPU에서 처리해주는 기능)가 존재하지 않았다. NSprites
-  Foundation 문서가 자체 컬링을 "성능 문제로 기본 비활성"이라 밝힌 것도, 손으로 짠 컬링이
-  지금 엔진 차원의 GPU 드리븐 컬링만큼 효율적이지 못했다는 정황이다.
-
-BatchRendererGroup(Entities Graphics의 기반)도 `DrawMeshInstancedProcedural`과 마찬가지로
-1023개 한도가 없다 — 같은 문제를 이미 해결한 상태고, 거기에 GPU Resident Drawer가 NSprites가
-2022년에 손으로 짰던 최적화를 엔진 차원에서 대신 해준다. NSprites는 그 초기 아키텍처 결정에
-계속 묶여 있어서, 프레임워크를 갈아엎지 않는 한 이런 엔진 발전을 자동으로 못 받는다.
-
-**결론**: 지금(Unity 6000.4.0b11, Entities Graphics 6.4.0) 기준으로는 Entities Graphics +
-DOTS Instancing 쪽이 성능적으로 더 유리할 가능성이 높다. 단, 이건 각 접근이 문서화한
-아키텍처적 능력에 근거한 추론이지 두 방식을 동일 조건에서 실측 프로파일링한 결과는 아니다.
-TD_Project의 목표 규모(500~1,000마리, `Docs/TODO.md`)에서는 어느 쪽이든 드로우콜 제출
-자체가 병목일 가능성은 낮고, 시뮬레이션(Job/Burst) 쪽이 먼저 병목일 확률이 더 크다 — 실제
-차이가 궁금해지면 프로파일러로 직접 재는 것이 유일하게 확실한 답이다.
+같은 문제("ECS 개체별 데이터를 어떻게 GPU 렌더링 쪽에 전달하나")를 Latios Framework의
+`LifeFX`(ECS 이벤트를 VFX Graph에 전달)와 `NSprites`(Entities Graphics를 아예 안 쓰고
+ComputeBuffer 직접 관리)는 다르게 푼다. 예시 코드·구조·성능 관점을 포함한 상세 비교는 별도
+문서로 뺐다 → [개체별 GPU 데이터 전달 — Entities Graphics vs Latios LifeFX vs NSprites](./ECS-Instancing-Frameworks.md)
 
 ## 비교표
 
@@ -252,16 +146,14 @@ TD_Project의 목표 규모(500~1,000마리, `Docs/TODO.md`)에서는 어느 쪽
 - [TD_Project ECS Warm-up](../Architecture/TD_Project-ECS-Warmup.md)
 - [노멀맵 인코딩과 디퓨즈/스펙큘러/프레넬/림 라이팅](../Graphics/Normal-Mapping-and-Lighting-Models.md)
   — 이 배치 경로로 그려지는 EnemyShader의 라이팅 계산 자체
+- [개체별 GPU 데이터 전달 — Entities Graphics vs Latios LifeFX vs NSprites](./ECS-Instancing-Frameworks.md)
+  — 이 문서의 DOTS Instancing 절에서 파생된 프레임워크 비교(예시 코드·구조·성능 관점 포함)
 
 ## 참고자료
 
 - [Unity Entities Graphics](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.2/manual/index.html)
 - [Unity Entities Graphics overview](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.4/manual/overview.html)
 - [Unity Entities Graphics requirements](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.2/manual/requirements-and-compatibility.html)
-- [Latios Framework](https://github.com/Dreaming381/Latios-Framework) — LifeFX 모듈의
-  ECS→VFX Graph GraphicsBuffer 브리지 비교 출처
-- [NSprites](https://github.com/Antoshidza/NSprites) / [NSprites-Foundation](https://github.com/Antoshidza/NSprites-Foundation)
-  — ComputeBuffer 직접 관리 + 2D 위치 정렬 비교 출처
 
 ## 개정 이력
 
@@ -272,4 +164,5 @@ TD_Project의 목표 규모(500~1,000마리, `Docs/TODO.md`)에서는 어느 쪽
 | 2026-09-17 | Latios Framework LifeFX와의 비교 절 추가 | 사용자가 제시한 다른 ECS 프레임워크(`STUDY-05`)의 2D/개체별 GPU 데이터 전달 방식 검토 |
 | 2026-09-17 | NSprites(전용 2D 스프라이트 ECS 프레임워크)와의 비교 절 추가 | 사용자가 제시한 프레임워크(`STUDY-06`) 검토 — ComputeBuffer 직접 관리와 2D 위치 정렬 방식 확인 |
 | 2026-09-17 | NSprites 비교에 성능 관점 절 추가 | NSprites의 2022년 아키텍처 선택이 "다른 판단"이 아니라 "당시 Entities Graphics 미성숙으로 인한 제약"이었음을 확인, GPU Resident Drawer와 비교 |
+| 2026-09-17 | Latios/NSprites 비교 절을 `ECS-Instancing-Frameworks.md`로 분리 | 사용자가 두 프레임워크 비교를 예시 코드·구조 포함한 정식 항목으로 정리해달라고 요청 — 이 문서는 요약 링크만 남김 |
 

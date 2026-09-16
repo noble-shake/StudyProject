@@ -125,6 +125,7 @@ ComputerScience/
 | **[TD_Project 저장소 개요와 ECS 코어 루프](ComputerScience/Architecture/TD_Project.md)** | TD_Project · `STUDY-01`, `STUDY-02` | `TD_Project` | 학습 중 |
 | [ECS Warm-up — Addressables에서 Entity Pool까지](ComputerScience/Architecture/TD_Project-ECS-Warmup.md) | TD_Project · `STUDY-03` | `TD_Project` | 학습 중 |
 | [노멀맵 인코딩과 디퓨즈/스펙큘러/프레넬/림 라이팅](ComputerScience/Graphics/Normal-Mapping-and-Lighting-Models.md) | TD_Project · `STUDY-04` | `TD_Project` | 학습 중 |
+| [개체별 GPU 데이터 전달 — Entities Graphics vs Latios LifeFX vs NSprites](ComputerScience/UnityECS/ECS-Instancing-Frameworks.md) | TD_Project · `STUDY-05`, `STUDY-06` | `TD_Project` | 완료 |
 
 ### 그래픽스 (특정 프로젝트 종속 없음)
 
