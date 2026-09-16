@@ -136,6 +136,58 @@ VFX Graph의 기성 기능(플립북, 파티클 스케일 최적화)을 공짜�
 자체를 세밀하게 통제해야 하는 경우, 코드로 완전히 열려 있는 DOTS Instancing 직접 구현
 쪽이 오히려 더 다루기 쉬울 수 있다.
 
+### 다른 프레임워크의 접근 — NSprites (전용 2D 스프라이트 ECS 프레임워크)
+
+Latios가 2D 전용 모듈이 없는 것과 달리, `Antoshidza/NSprites`(+ `NSprites-Foundation`)는 처음부터
+Unity Entities와 함께 쓰는 **전용 2D 스프라이트 렌더링 프레임워크**다. 이 문서의 "DOTS
+Instancing으로 개체별 Material Property 넘기기"와 목적은 완전히 같지만, 경로가 근본적으로
+다르다 — **Entities Graphics/BatchRendererGroup을 아예 쓰지 않는다.**
+
+> "sync registered entity components with ComputeBuffers to send data to GPU and then
+> renders entities with Graphics.DrawMeshInstancedProcedural"
+
+즉 개체 컴포넌트 값을 직접 `ComputeBuffer`로 올리고, 셰이더에서는 `StructuredBuffer`를
+인스턴스 ID로 인덱싱해서 읽는다.
+
+```hlsl
+StructuredBuffer<int> _propertyPointers;
+StructuredBuffer<float4> _color;
+
+Varyings UnlitVertex(Attributes attributes, uint instanceID : SV_InstanceID)
+{
+    int propPointer = _propertyPointers[instanceID];
+    float4 color = _color[propPointer];
+}
+```
+
+`_propertyPointers`로 한 번 더 간접 참조하는 이유는(인스턴스 ID를 버퍼 인덱스에 직접 매핑하지
+않는 것) 엔티티가 파괴/재사용될 때 버퍼 전체를 재정렬하지 않고 포인터만 갱신하기 위해서로
+보인다 — 우리가 `Disabled` 태그로 풀링하며 Entity Index 자체는 안정적으로 유지하는 것과 다른
+방식으로 같은 "재사용 시 데이터 정합성" 문제를 푼다.
+
+Foundation 확장 패키지는 이 기반 위에 2D 게임에 특화된 시스템을 얹는다.
+
+- **애니메이션**: "Shifts UV values to simulate sprite animation" — 이 문서의 `GetFrameUV`와
+  목적이 같은 플립북 UV 시프트.
+- **정렬(Sorting)**: "Calculate SortingValue depending on 2D position to use in shader" —
+  Z-버퍼 깊이 대신 2D 위치로 그리기 순서를 계산한다.
+- **컬링**: 2D 위치 기준 카메라 컬링(기본 비활성 — 성능 트레이드오프상 옵트인).
+
+| | 이 문서의 DOTS Instancing 방식 | NSprites |
+|---|---|---|
+| 렌더 경로 | Entities Graphics가 자동 배치 | `Graphics.DrawMeshInstancedProcedural` 직접 호출 |
+| 개체별 데이터 전달 | DOTS Instancing 매크로 | `ComputeBuffer`/`StructuredBuffer` 직접 관리 + 포인터 간접 참조 |
+| 그리기 순서 | 표준 Z-버퍼 깊이 정렬(Opaque) | 2D 위치 기반 수동 정렬 |
+| 필요한 인프라 | Entities Graphics가 배치·컬링 담당 | 등록·용량 관리·정렬·컬링을 직접 구현 |
+
+**TD_Project에 실제로 적용해보면**: NSprites가 2D 위치 정렬을 따로 만든 이유는 보통 "투명
+스프라이트가 겹칠 때 Z-버퍼만으론 그리기 순서가 안 맞는" 순수 2D(카메라와 같은 평면에 깔린
+스프라이트 다수) 게임의 문제다. TD_Project는 `MEMO-ACTOR-09`처럼 실제 3D 좌표계를 쓰고
+`EnemyShader`의 Quad도 현재 Opaque(Z-write 켜짐)라서, 표준 Z-버퍼 정렬이 이미 올바르게
+동작한다 — 지금 시점엔 이 문제 자체가 없다. 다만 그린스크린 알파 블렌딩을 붙여서 Enemy Quad가
+반투명(Transparent 큐)으로 바뀌면, 겹치는 스프라이트의 그리기 순서가 카메라 거리 기준
+근사 정렬로만 처리돼 부정확해질 수 있다 — 그 시점에 이 NSprites 정렬 패턴을 다시 참고할 만하다.
+
 ## 비교표
 
 | 오해 | 실제 |
@@ -180,6 +232,8 @@ VFX Graph의 기성 기능(플립북, 파티클 스케일 최적화)을 공짜�
 - [Unity Entities Graphics requirements](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.2/manual/requirements-and-compatibility.html)
 - [Latios Framework](https://github.com/Dreaming381/Latios-Framework) — LifeFX 모듈의
   ECS→VFX Graph GraphicsBuffer 브리지 비교 출처
+- [NSprites](https://github.com/Antoshidza/NSprites) / [NSprites-Foundation](https://github.com/Antoshidza/NSprites-Foundation)
+  — ComputeBuffer 직접 관리 + 2D 위치 정렬 비교 출처
 
 ## 개정 이력
 
@@ -188,4 +242,5 @@ VFX Graph의 기성 기능(플립북, 파티클 스케일 최적화)을 공짜�
 | 2026-09-15 | 최초 작성 | ECS Graphics와 URP 관계 정리 |
 | 2026-09-17 | DOTS Instancing 개체별 Material Property 패턴 절 추가 | EnemyShader에서 프레임 인덱스·피격 틴트를 Material 복제 없이 개체별로 넘기는 실제 구현 |
 | 2026-09-17 | Latios Framework LifeFX와의 비교 절 추가 | 사용자가 제시한 다른 ECS 프레임워크(`STUDY-05`)의 2D/개체별 GPU 데이터 전달 방식 검토 |
+| 2026-09-17 | NSprites(전용 2D 스프라이트 ECS 프레임워크)와의 비교 절 추가 | 사용자가 제시한 프레임워크(`STUDY-06`) 검토 — ComputeBuffer 직접 관리와 2D 위치 정렬 방식 확인 |
 
