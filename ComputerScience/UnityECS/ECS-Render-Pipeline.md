@@ -188,6 +188,34 @@ Foundation 확장 패키지는 이 기반 위에 2D 게임에 특화된 시스�
 반투명(Transparent 큐)으로 바뀌면, 겹치는 스프라이트의 그리기 순서가 카메라 거리 기준
 근사 정렬로만 처리돼 부정확해질 수 있다 — 그 시점에 이 NSprites 정렬 패턴을 다시 참고할 만하다.
 
+#### 성능 관점 — "다른 선택"이 아니라 "그 시절엔 없었던 선택지"
+
+NSprites 저장소는 **2022-03**에 만들어졌다(최근까지 유지보수는 되고 있음, 마지막 커밋
+2025-06). 이 시점은 Unity Entities가 1.0 정식 출시 전, Hybrid Renderer/초기 Entities
+Graphics가 아직 미숙하던 때다. `ComputeBuffer` + `Graphics.DrawMeshInstancedProcedural`를
+직접 관리하는 선택은 "Entities Graphics보다 낫다고 판단해서"가 아니라, **당시엔 대량
+인스턴싱을 할 다른 실용적인 방법이 없었기 때문**일 가능성이 크다.
+
+- 옛 `Graphics.DrawMeshInstanced`(상수 버퍼 배열 기반)는 인스턴스당 1023개 한도가 있었다.
+  `DrawMeshInstancedProcedural` + `ComputeBuffer`는 이 한도를 피하는 사실상 유일한
+  우회로였다.
+- 당시엔 지금의 **GPU Resident Drawer**(Unity 6/URP가 BatchRendererGroup 인스턴스 데이터를
+  GPU에 상주시키고 컬링·배치까지 GPU에서 처리해주는 기능)가 존재하지 않았다. NSprites
+  Foundation 문서가 자체 컬링을 "성능 문제로 기본 비활성"이라 밝힌 것도, 손으로 짠 컬링이
+  지금 엔진 차원의 GPU 드리븐 컬링만큼 효율적이지 못했다는 정황이다.
+
+BatchRendererGroup(Entities Graphics의 기반)도 `DrawMeshInstancedProcedural`과 마찬가지로
+1023개 한도가 없다 — 같은 문제를 이미 해결한 상태고, 거기에 GPU Resident Drawer가 NSprites가
+2022년에 손으로 짰던 최적화를 엔진 차원에서 대신 해준다. NSprites는 그 초기 아키텍처 결정에
+계속 묶여 있어서, 프레임워크를 갈아엎지 않는 한 이런 엔진 발전을 자동으로 못 받는다.
+
+**결론**: 지금(Unity 6000.4.0b11, Entities Graphics 6.4.0) 기준으로는 Entities Graphics +
+DOTS Instancing 쪽이 성능적으로 더 유리할 가능성이 높다. 단, 이건 각 접근이 문서화한
+아키텍처적 능력에 근거한 추론이지 두 방식을 동일 조건에서 실측 프로파일링한 결과는 아니다.
+TD_Project의 목표 규모(500~1,000마리, `Docs/TODO.md`)에서는 어느 쪽이든 드로우콜 제출
+자체가 병목일 가능성은 낮고, 시뮬레이션(Job/Burst) 쪽이 먼저 병목일 확률이 더 크다 — 실제
+차이가 궁금해지면 프로파일러로 직접 재는 것이 유일하게 확실한 답이다.
+
 ## 비교표
 
 | 오해 | 실제 |
@@ -243,4 +271,5 @@ Foundation 확장 패키지는 이 기반 위에 2D 게임에 특화된 시스�
 | 2026-09-17 | DOTS Instancing 개체별 Material Property 패턴 절 추가 | EnemyShader에서 프레임 인덱스·피격 틴트를 Material 복제 없이 개체별로 넘기는 실제 구현 |
 | 2026-09-17 | Latios Framework LifeFX와의 비교 절 추가 | 사용자가 제시한 다른 ECS 프레임워크(`STUDY-05`)의 2D/개체별 GPU 데이터 전달 방식 검토 |
 | 2026-09-17 | NSprites(전용 2D 스프라이트 ECS 프레임워크)와의 비교 절 추가 | 사용자가 제시한 프레임워크(`STUDY-06`) 검토 — ComputeBuffer 직접 관리와 2D 위치 정렬 방식 확인 |
+| 2026-09-17 | NSprites 비교에 성능 관점 절 추가 | NSprites의 2022년 아키텍처 선택이 "다른 판단"이 아니라 "당시 Entities Graphics 미성숙으로 인한 제약"이었음을 확인, GPU Resident Drawer와 비교 |
 
