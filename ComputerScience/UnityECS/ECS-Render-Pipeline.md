@@ -52,6 +52,57 @@ ECS Entity의 위치는 Simulation System이 `LocalTransform`을 바꾸고, tran
 
 단, Scene을 바꿀 때 bake된 lightmap·reflection·volume 전환이 실제 타깃 플랫폼에서 자연스러운지 별도로 검증해야 한다. ECS가 존재한다고 라이팅 데이터의 streaming 또는 shader variant 문제가 사라지지는 않는다.
 
+### DOTS Instancing으로 개체별 Material Property 넘기기
+
+Entities Graphics가 여러 Entity를 하나의 batch로 그릴 때, Material 자체는 하나만 쓰면서도
+개체마다 다른 값(예: 스프라이트 애니메이션 프레임, 피격 틴트 세기)을 넘겨야 하는 경우가
+흔하다. `Graphics.DrawMeshInstanced`에 쓰던 `MaterialPropertyBlock`과 달리, Entities
+Graphics는 **DOTS Instancing**이라는 별도 경로로 이걸 처리한다 — Material을 개체 수만큼
+복제하지 않고도 개체별 값을 GPU 버퍼로 넘긴다.
+
+URP의 손으로 짠(hand-written HLSL, ShaderGraph 아님) 셰이더가 이 경로를 타려면 세 가지가
+필요하다.
+
+1. **패스에 인스턴싱 프라그마를 건다.**
+   ```hlsl
+   #pragma multi_compile_instancing
+   #include_with_pragmas "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DOTS.hlsl"
+   ```
+   `DOTS.hlsl`이 내부적으로 `#pragma multi_compile _ DOTS_INSTANCING_ON`과 타깃 레벨을
+   같이 설정해 준다.
+
+2. **개체별로 달라져야 하는 프로퍼티만 `UNITY_DOTS_INSTANCING_START` 블록으로 선언한다.**
+   나머지(공유되는 텍스처, 타일링 값 등)는 평소처럼 `CBUFFER_START(UnityPerMaterial)`에
+   둔다 — 전부를 인스턴싱 프로퍼티로 만들 필요는 없다.
+   ```hlsl
+   #ifdef UNITY_DOTS_INSTANCING_ENABLED
+   UNITY_DOTS_INSTANCING_START(MaterialPropertyMetadata)
+       UNITY_DOTS_INSTANCED_PROP(float, _FrameIndex)
+       UNITY_DOTS_INSTANCED_PROP(float, _HitFlash)
+   UNITY_DOTS_INSTANCING_END(MaterialPropertyMetadata)
+   ```
+
+3. **매크로 오버라이드로 기존 이름을 그대로 쓸 수 있게 한다.** `UNITY_SETUP_INSTANCE_ID`가
+   호출될 때 자동으로 `UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES()`를 실행하도록 정의해두면,
+   버텍스/프래그먼트 함수 코드는 `_FrameIndex`, `_HitFlash`를 원래 이름 그대로 쓰면서도
+   실제로는 인스턴스별 값을 읽게 된다(URP 자체 셰이더들이 `_BaseColor` 등에 쓰는 것과
+   같은 패턴).
+   ```hlsl
+   static float unity_DOTS_Sampled_FrameIndex;
+   void SetupDOTSEnemyMaterialPropertyCaches()
+   {
+       unity_DOTS_Sampled_FrameIndex = UNITY_ACCESS_DOTS_INSTANCED_PROP_WITH_DEFAULT(float, _FrameIndex);
+   }
+   #undef UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES
+   #define UNITY_SETUP_DOTS_MATERIAL_PROPERTY_CACHES() SetupDOTSEnemyMaterialPropertyCaches()
+   #define _FrameIndex unity_DOTS_Sampled_FrameIndex
+   #endif
+   ```
+
+이 패턴을 안 쓰고 개체별로 다른 시각 효과를 주려던 흔한 대안이 "개체마다 Material 인스턴스
+복제"인데, 이건 정확히 batching을 깨뜨려서 Entities Graphics를 쓰는 의미를 없앤다 — draw
+call이 다시 개체 수만큼 늘어난다.
+
 ## 비교표
 
 | 오해 | 실제 |
@@ -86,6 +137,8 @@ ECS Entity의 위치는 Simulation System이 `LocalTransform`을 바꾸고, tran
 - [SubScene과 씬 스트리밍](./SubScene-Streaming.md)
 - [Spawner, Pool, Warm-up](./Spawner-Pooling-Warmup.md)
 - [TD_Project ECS Warm-up](../Architecture/TD_Project-ECS-Warmup.md)
+- [노멀맵 인코딩과 디퓨즈/스펙큘러/프레넬/림 라이팅](../Graphics/Normal-Mapping-and-Lighting-Models.md)
+  — 이 배치 경로로 그려지는 EnemyShader의 라이팅 계산 자체
 
 ## 참고자료
 
@@ -98,4 +151,5 @@ ECS Entity의 위치는 Simulation System이 `LocalTransform`을 바꾸고, tran
 | 날짜 | 무엇을 바꿨나 | 근거 |
 |---|---|---|
 | 2026-09-15 | 최초 작성 | ECS Graphics와 URP 관계 정리 |
+| 2026-09-17 | DOTS Instancing 개체별 Material Property 패턴 절 추가 | EnemyShader에서 프레임 인덱스·피격 틴트를 Material 복제 없이 개체별로 넘기는 실제 구현 |
 
