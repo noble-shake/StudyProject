@@ -103,6 +103,39 @@ URP의 손으로 짠(hand-written HLSL, ShaderGraph 아님) 셰이더가 이 경
 복제"인데, 이건 정확히 batching을 깨뜨려서 Entities Graphics를 쓰는 의미를 없앤다 — draw
 call이 다시 개체 수만큼 늘어난다.
 
+### 다른 프레임워크의 접근 — Latios Framework의 LifeFX
+
+같은 문제("ECS 개체별 데이터를 어떻게 GPU 렌더링 쪽에 전달하나")를 다르게 푸는 프레임워크가
+있는지 비교해보면 우리 선택의 위치를 더 잘 이해할 수 있다. Latios Framework(Dreaming381의
+개인 Unity DOTS 프레임워크, `github.com/Dreaming381/Latios-Framework`)는 Kinemation(애니메이션/
+메쉬 최적화), Calligraphics(월드스페이스 텍스트), LifeFX(대규모 VFX) 등의 모듈로 구성되는데,
+**전용 2D 스프라이트 렌더링 모듈은 없다.**
+
+가장 가까운 모듈은 LifeFX다. 공식 설명은 다음과 같다.
+
+> "provides VFX solutions at ECS scales using an intelligent graphics buffer management
+> pipeline" — "an out-of-the-box solution for sending ECS event payloads to VFX Graph via
+> graphics buffers, as well as synchronizing entity transforms with the GPU" — "a single
+> VFX Graph instance can support thousands of entities."
+
+즉 LifeFX는 이 문서 위쪽에서 설명한 "DOTS Instancing으로 개체별 Material Property 넘기기"와
+**목적은 같지만 방법이 다르다.**
+
+| | 이 문서의 DOTS Instancing 방식 | Latios LifeFX |
+|---|---|---|
+| 개체별 데이터 전달 경로 | 커스텀 HLSL 셰이더에 `UNITY_DOTS_INSTANCING_START` 매크로 직접 작성 | ECS 이벤트를 GraphicsBuffer로 Unity **VFX Graph**에 전달 |
+| 렌더링 주체 | Material + 손으로 짠 URP 셰이더 | VFX Graph 에셋(비주얼 스크립팅) |
+| 텍스처 시트/프레임 애니메이션 | 셰이더 코드에서 직접 UV 계산 | VFX Graph 내장 Flipbook 노드 |
+| 커스텀 라이팅 모델 제어 | 셰이더 코드를 직접 고치면 됨(예: 스펙큘러/프레넬 빼기) | VFX Graph의 출력 셰이더 그래프 쪽에서 별도로 맞춰야 함 |
+| 확장 규모 | Material 하나 기준, 배치는 Entities Graphics가 처리 | "VFX Graph 인스턴스 하나로 수천 개체" — 파티클 스케일 전제 |
+
+두 방식 다 "Material을 개체 수만큼 복제하지 않는다"는 목표는 같지만, DOTS Instancing 직접
+구현은 셰이더 코드 전체를 손으로 통제할 수 있는 대신 보일러플레이트가 필요하고, LifeFX는
+VFX Graph의 기성 기능(플립북, 파티클 스케일 최적화)을 공짜로 얻는 대신 커스텀 라이팅
+로직은 VFX Graph의 셰이더 그래프 안에서 다시 구성해야 한다. 셀 스타일처럼 라이팅 모델
+자체를 세밀하게 통제해야 하는 경우, 코드로 완전히 열려 있는 DOTS Instancing 직접 구현
+쪽이 오히려 더 다루기 쉬울 수 있다.
+
 ## 비교표
 
 | 오해 | 실제 |
@@ -145,6 +178,8 @@ call이 다시 개체 수만큼 늘어난다.
 - [Unity Entities Graphics](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.2/manual/index.html)
 - [Unity Entities Graphics overview](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.4/manual/overview.html)
 - [Unity Entities Graphics requirements](https://docs.unity.cn/Packages/com.unity.entities.graphics@1.2/manual/requirements-and-compatibility.html)
+- [Latios Framework](https://github.com/Dreaming381/Latios-Framework) — LifeFX 모듈의
+  ECS→VFX Graph GraphicsBuffer 브리지 비교 출처
 
 ## 개정 이력
 
@@ -152,4 +187,5 @@ call이 다시 개체 수만큼 늘어난다.
 |---|---|---|
 | 2026-09-15 | 최초 작성 | ECS Graphics와 URP 관계 정리 |
 | 2026-09-17 | DOTS Instancing 개체별 Material Property 패턴 절 추가 | EnemyShader에서 프레임 인덱스·피격 틴트를 Material 복제 없이 개체별로 넘기는 실제 구현 |
+| 2026-09-17 | Latios Framework LifeFX와의 비교 절 추가 | 사용자가 제시한 다른 ECS 프레임워크(`STUDY-05`)의 2D/개체별 GPU 데이터 전달 방식 검토 |
 
