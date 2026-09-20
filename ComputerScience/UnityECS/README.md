@@ -12,6 +12,7 @@ Unity ECS를 처음 도입할 때 필요한 개념과, 실제 프로젝트에서
 6. [SubScene과 씬 스트리밍](./SubScene-Streaming.md) — 베이킹 결과와 여러 SubScene의 역할
 7. [Authoring, Baker, ScriptableObject](./Baking-ScriptableObject.md) — 편집용 데이터가 런타임 데이터가 되는 과정
 8. [Spawner, Pool, Warm-up](./Spawner-Pooling-Warmup.md) — 전투 시작 hitch를 로딩 구간으로 옮기는 방법
+9. [공간 분할 — 균일 격자](./Spatial-Partitioning.md) — 수만 개 중에서 이웃만 골라내는 방법
 
 ## 이 폴더와 TD_Project의 관계
 
@@ -22,6 +23,7 @@ Unity ECS를 처음 도입할 때 필요한 개념과, 실제 프로젝트에서
 | Authoring, Baker, ScriptableObject | `BattleSessionAuthoring`, `BattleSpawnConfigSO` |
 | Spawner, Pool, Warm-up | Patch Addressables, Entity prefab pool |
 | ECS와 Unity 렌더 파이프라인 | Entities Graphics prefab 렌더링 |
+| 공간 분할 — 균일 격자 | `SpatialGridSystem`, `CollisionSystem`, `PlayerFireSystem` |
 
 ## 기준과 주의점
 
