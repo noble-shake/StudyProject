@@ -51,6 +51,14 @@ Job 안에서 Entity를 구조적으로 바꾸려면 parallel writer를 제공�
 
 이 지연은 버그가 아니라 계약이다. “이번 프레임에 spawn 요청을 썼으니 같은 Query에서 바로 찾을 수 있다”라고 가정하면 안 된다. 같은 프레임의 즉시 결과가 꼭 필요하다면, 구조 변경 대신 미리 pool에서 활성 상태를 바꾸는 설계가 더 나을 수 있다.
 
+### SystemBase는 "선언한 쓰기"로 기다린다 — 그리고 일반 IJob.Run은 기다리지 않는다
+
+SystemBase는 시스템이 어떤 컴포넌트를 쓰기로 선언했는지(쓰기 쿼리, `RefRW`, 쓰기 Lookup)를 기억해 두었다가, OnUpdate가 끝날 때 그 시스템의 `Dependency`를 **그 컴포넌트들의 쓰기 핸들**로 등록한다. 그래서 다음 시스템이 그 컴포넌트를 읽기만 해도, 앞 시스템이 마지막에 예약한 Job이 끝날 때까지 기다리게 된다. TD_Project에서는 세션 정보(`StageSession`)를 쓰기로 선언한 시스템이 마지막에 적 이동 Job을 예약했고, 그 때문에 다음 시스템이 세션을 "읽는" 줄에서 평균 1.9ms를 기다렸다. 세션과 적 이동은 아무 관계가 없는데도 말이다. 대기가 어디서 생기는지 모를 때는, 의심되는 줄을 ProfilerMarker로 감싸 재 보면 이런 숨은 의존성이 드러난다.
+
+다만 이 대기를 없애도 소용없는 경우가 있다. 뒤의 시스템들이 모두 그 Job의 결과(이번 프레임 적 위치)를 정말로 필요로 한다면, 메인 스레드는 어딘가에서 반드시 그 Job을 기다린다. 이것이 임계 경로다. 이때 줄일 방법은 Job 자체를 빠르게 하거나, 이전 프레임 결과를 쓰는 파이프라인(대신 판정이 한 프레임 늦어진다)뿐이다.
+
+반대 방향의 함정도 있다. `IJobEntity`의 `Run()`은 자기 쿼리에 필요한 의존성을 알아서 끝내 주지만, **일반 `IJob`의 `Run()`은 다른 시스템이 예약해 둔 Job을 자동으로 기다리지 않는다.** 그 안에서 `ComponentLookup`으로 다른 Job이 읽거나 쓰는 컴포넌트를 건드리면 안전 검사가 `InvalidOperationException`을 던진다. 이럴 때는 실행 전에 `EntityManager.CompleteDependencyBeforeRW<T>()`(또는 `RO`)로 그 타입의 의존성을 직접 끝내 둔다. 바로 뒤에 구조 변경이 있다면 어차피 모든 Job이 끝나므로 추가 비용은 없다.
+
 ### Burst가 막히는 흔한 이유
 
 Burst는 managed object, virtual dispatch가 필요한 polymorphism, 많은 UnityEngine API, string 처리 같은 코드를 다루지 못하거나 이점을 내기 어렵다. Burst 오류를 피하려고 전부 static 전역 데이터로 바꾸기보다, managed 입력을 main thread에서 값 타입 Component·BlobAsset으로 변환하고 계산 부분만 Job에 넘기는 경계를 만든다.
@@ -117,4 +125,5 @@ public partial struct LifetimeSystem : ISystem
 | 날짜 | 무엇을 바꿨나 | 근거 |
 |---|---|---|
 | 2026-09-15 | 최초 작성 | 대량 적과 탄환 병렬 처리 학습 |
+| 2026-10-07 | "SystemBase는 선언한 쓰기로 기다린다 — 일반 IJob.Run은 기다리지 않는다" 절 추가 | TD_Project OPT-05 예외·OPT-07 세션 조회 대기 실측 |
 

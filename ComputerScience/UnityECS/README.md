@@ -13,6 +13,7 @@ Unity ECS를 처음 도입할 때 필요한 개념과, 실제 프로젝트에서
 7. [Authoring, Baker, ScriptableObject](./Baking-ScriptableObject.md) — 편집용 데이터가 런타임 데이터가 되는 과정
 8. [Spawner, Pool, Warm-up](./Spawner-Pooling-Warmup.md) — 전투 시작 hitch를 로딩 구간으로 옮기는 방법
 9. [공간 분할 — 균일 격자와 공간 해시](./Spatial-Partitioning.md) — 수만 개 중에서 이웃만 골라내는 방법
+10. [구조 변경과 켜고 끄는 컴포넌트](./Structural-Changes-and-Enableable-Components.md) — 대량 처치를 청크 이동 없이 다루는 방법
 
 ## 이 폴더와 TD_Project의 관계
 
@@ -24,6 +25,7 @@ Unity ECS를 처음 도입할 때 필요한 개념과, 실제 프로젝트에서
 | Spawner, Pool, Warm-up | Patch Addressables, Entity prefab pool |
 | ECS와 Unity 렌더 파이프라인 | Entities Graphics prefab 렌더링 |
 | 공간 분할 — 균일 격자와 공간 해시 | `SpatialGridSystem`, `CollisionSystem`, `PlayerFireSystem` |
+| 구조 변경과 켜고 끄는 컴포넌트 | `EnemyActive`, `EnemyReleaseSystem`, `SpawnPoolAccess.ActivateEnemy` |
 
 ## 기준과 주의점
 
