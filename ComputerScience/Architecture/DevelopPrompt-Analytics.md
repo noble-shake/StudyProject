@@ -174,7 +174,7 @@
 
 | 방법 | 하는 일 |
 |---|---|
-| 바탕화면 `DevelopPrompt Dashboard.cmd` | 서버가 떠 있으면 브라우저만 연다. 없으면 `I:\Workspace\DevelopPrompt`에서 "DevelopPrompt Analytics"라는 최소화 창으로 서버를 띄운 뒤 연다. 그 창을 닫으면 서버가 꺼진다. |
+| 바탕화면 `DevelopPrompt Dashboard.cmd` | 서버가 떠 있으면 브라우저만 연다. 없으면 `E:\workspace\DevelopPrompt`(이 머신의 유일한 체크아웃)에서 "DevelopPrompt Analytics"라는 최소화 창으로 서버를 띄운 뒤 연다. 그 창을 닫으면 서버가 꺼진다. |
 | 직접 실행 | `python TOOLS/analytics/serve.py --config-dir <설정 폴더>` 후 `http://127.0.0.1:8765/` |
 | 터미널 보기 | `python TOOLS/analytics/term.py --config-dir <설정 폴더> --watch 5` — 같은 분석을 표로 출력하고, 새 이벤트가 있을 때만 다시 그린다 |
 | hook 설치(선택) | `python TOOLS/analytics/install_hook.py --config-dir <설정 폴더>`로 바뀔 내용을 먼저 보고, `--apply`로 적용 |
@@ -308,3 +308,4 @@ stage.scrollTo({
 | 2026-10-09 | 화면 설계에 마지막 경로 반복 재생과 패킷 경로 정렬을 더하고, 검증 방법을 질문에 추가 | 새 이벤트 전까지 화면이 멈춰 보이고 패킷이 선과 어긋난다는 사용자 피드백 |
 | 2026-10-09 | 질문 단위(turn) 강조·반복 재생, 3초 폴링, 터미널 보기, 호출 단위 중복 제거를 추가 | 질문 하나가 읽은 문서를 한 번에 보고 싶다는 요청과 새로고침해야 반영된다는 피드백 |
 | 2026-10-09 | 질문 플로우 동시 재생, viewBox 기반 드래그·휠 이동, 깊이·카테고리 색을 추가 | 순차 재생은 마지막 것만 남고, 맨 아래가 오버레이에 가려 안 보인다는 피드백 |
+| 2026-10-09 | 실행 파일이 쓰는 체크아웃 경로를 `E:`로 고침 | 드라이브별로 흩어진 DevelopPrompt 체크아웃을 `E:` 하나로 통합 |
