@@ -118,6 +118,12 @@ ComputerScience/
 |---|---|---|---|
 | [StudyProject NAS 동기화 GitHub Actions](ComputerScience/Infrastructure/StudyProject-NAS-Sync.md) | 문서 자동 반영 구성 | `StudyProject`, `RottenNoble-Project` | 학습 중 |
 
+### DevelopPrompt 도구
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| [규약 참조 애널리틱스 — 실행 방식, 개발 방법, 아키텍처](ComputerScience/Architecture/DevelopPrompt-Analytics.md) | DevelopPrompt · `TOOLS/analytics` 직접 개선 (STUDY-nn 아님) | `DevelopPrompt` | 학습 중 |
+
 ### TD_Project (Unity ECS 학습)
 
 | 주제 | 출처(프로젝트 · STUDY-nn) | 관련 레포지토리 | 상태 |
