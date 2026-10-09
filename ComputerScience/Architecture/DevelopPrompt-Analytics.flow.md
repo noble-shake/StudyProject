@@ -21,7 +21,7 @@ flowchart TD
     %% ── 브라우저 ───────────────────────
     subgraph WEB["브라우저"]
         PL["10초 폴링 · /api/report"]
-        TP["전체 화면 Topology · 따라가기, 마지막 강조"]
+        TP["전체 화면 Topology · 따라가기, 마지막 경로 반복"]
         OV["하단 오버레이 · 통계, 로그, 목록, 재생"]
     end
 
