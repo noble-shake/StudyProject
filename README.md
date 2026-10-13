@@ -41,7 +41,8 @@ Study with DevelopPrompt — 여러 프로젝트에서 궁금해졌던 것(각 �
 
 - **카테고리별 폴더 트리로 정리한다** — `ComputerScience/{분야}/{주제}.md` (예:
   `ComputerScience/Network/CORS.md`). 분야 폴더는 필요에 따라 늘어난다(현재:
-  `WebDevelopment`, `Database`, `Infrastructure`, `Security`, `Network`, `Architecture`, `Graphics`).
+  `WebDevelopment`, `Database`, `Infrastructure`, `Security`, `Network`, `Architecture`, `Graphics`,
+  `Modeling`).
   주제 하나가 여러 카테고리에 걸치면(문서 상단 메타의 "카테고리" 필드는 1~3개 가능) 가장 주된
   분야의 폴더에 두고, 메타 필드로 나머지를 표시한다 — 폴더는 하나, 태그는 여러 개.
 - 새 주제를 시작할 때 [`_TEMPLATE.md`](_TEMPLATE.md)를 복사해서, 해당 카테고리 폴더 안에 쓴다.
@@ -67,6 +68,7 @@ ComputerScience/
 ├── URP_PostProcessing/  Unity URP `Post Process Data`에 실제로 참조된 개별 셰이더(LUT PS 등) 전용
 ├── Database/            MariaDB, mysqli, SQL
 ├── Infrastructure/      Redis, 배포, 자체 호스팅, GitHub Actions
+├── Modeling/            3D 캐릭터 모델링·리깅·아바타(VRM) 제작 파이프라인
 ├── Network/             CORS, HTTPS, HTTP 프로토콜 일반
 ├── Security/            인증·인가, 해싱, 토큰 저장
 └── WebDevelopment/      PHP, React, 라우팅, API 설계
@@ -133,6 +135,12 @@ ComputerScience/
 | [노멀맵 인코딩과 디퓨즈/스펙큘러/프레넬/림 라이팅](ComputerScience/Graphics/Normal-Mapping-and-Lighting-Models.md) | TD_Project · `STUDY-04` | `TD_Project` | 학습 중 |
 | [개체별 GPU 데이터 전달 — Entities Graphics vs Latios LifeFX vs NSprites](ComputerScience/UnityECS/ECS-Instancing-Frameworks.md) | TD_Project · `STUDY-05`, `STUDY-06` | `TD_Project` | 완료 |
 | [구조 변경과 켜고 끄는 컴포넌트 — 대량 처치를 청크 이동 없이](ComputerScience/UnityECS/Structural-Changes-and-Enableable-Components.md) | TD_Project · `STUDY-07` | `TD_Project` | 완료 |
+
+### 모델링
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| [Charakuru — 일러스트 한 장을 VRM 아바타로 만드는 에이전트 키트](ComputerScience/Modeling/Charakuru.md) | 포크한 저장소 구조 조사 (STUDY-nn 아님) | `Charakuru` | 학습 중 |
 
 ### 그래픽스 (특정 프로젝트 종속 없음)
 
