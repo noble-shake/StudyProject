@@ -142,6 +142,12 @@ ComputerScience/
 |---|---|---|---|
 | [Charakuru — 일러스트 한 장을 VRM 아바타로 만드는 에이전트 키트](ComputerScience/Modeling/Charakuru.md) | 포크한 저장소 구조 조사 (STUDY-nn 아님) | `Charakuru` | 학습 중 |
 
+### UnityEffectGenerator (VFX 레퍼런스 해석)
+
+| 주제 | 출처 | 관련 레포지토리 | 상태 |
+|---|---|---|---|
+| [스타일화된 불꽃 — 윤곽 변화와 안쪽 흐름](ComputerScience/Graphics/Stylized-Flame-Flow.md) | Oratio 컷인 비교·고정 꽃잎 회전 실패 | `UnityEffectGenerator` | 학습 중 |
+
 ### 그래픽스 (특정 프로젝트 종속 없음)
 
 | 주제 | 출처 | 관련 레포지토리 | 상태 |
